@@ -64,7 +64,8 @@ export default function App(): JSX.Element {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider style={styles.container}>
         <StatusBar barStyle="light-content" />
-        {isComponentType(MaybeToaster) ? <MaybeToaster /> : null}
+         
+       
         <AuthProvider>
           <NavigationContainer>
             <Stack.Navigator
@@ -91,6 +92,7 @@ export default function App(): JSX.Element {
             </Stack.Navigator>
           </NavigationContainer>
         </AuthProvider>
+          {isComponentType(MaybeToaster) ? <MaybeToaster /> : null}
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

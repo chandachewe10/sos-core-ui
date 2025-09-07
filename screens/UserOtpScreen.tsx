@@ -14,6 +14,7 @@ export default function UserOtpScreen() {
   const auth = useAuth();
 
   async function handleVerify() {
+    
     if (!phone) return toast.error('Missing phone');
     if (otp.length !== 6) return toast.error('Enter 6-digit code');
     setLoading(true);
@@ -38,7 +39,7 @@ export default function UserOtpScreen() {
         placeholder="123456"
         value={otp}
         onChangeText={(t) => setOtp(t.replace(/[^0-9]/g, '').slice(0, 6))}
-        keyboardType="number-pad"
+        keyboardType="phone-pad"
         maxLength={6}
       />
       <Pressable style={[styles.button, loading && { opacity: 0.6 }]} onPress={handleVerify} disabled={loading}>
