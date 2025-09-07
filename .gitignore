@@ -1,0 +1,18 @@
+# React Native / Expo
+node_modules/
+.expo/
+.expo-shared/
+*.log
+
+# TypeScript
+*.tsbuildinfo
+
+# Xcode
+ios/build/
+ios/Pods/
+
+# Android
+android/app/build/
+
+# VSCode
+.vscode/
