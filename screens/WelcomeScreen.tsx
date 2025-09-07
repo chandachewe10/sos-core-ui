@@ -32,10 +32,10 @@ export default function WelcomeScreen() {
   const Content = (
     <>
      <View style={{ alignItems: 'center', marginVertical: 20 }}>
-  <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#0f766e', textAlign: 'center' }}>
+  <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'white', textAlign: 'center' }}>
     Emergency SOS
   </Text>
-  <Text style={{ fontSize: 16, color: '#555', marginTop: 4, textAlign: 'center' }}>
+  <Text style={{ fontSize: 16, color: 'white', marginTop: 4, textAlign: 'center' }}>
     Fast help when it matters most
   </Text>
 </View>

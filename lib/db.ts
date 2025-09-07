@@ -32,18 +32,18 @@ async function persist() {
 }
 
 export async function generateOtp(phone: string) {
-  // 1. Load local DB
+  
   const db = await load();
 
-  // 2. Generate 6-digit OTP
+  
   const code = (Math.floor(100000 + Math.random() * 900000)).toString();
   const otp: OTPStore = { phone, code, createdAt: Date.now() };
 
-  // 3. Store in local DB
+
   db.otps[phone] = otp;
   await persist();
 
-  // 4. Send OTP to external API
+  
   try {
     const formData = new FormData();
     formData.append('phone_number', phone);
