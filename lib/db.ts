@@ -72,7 +72,7 @@ export async function verifyOtp(phone: string, code: string) {
 
 export async function createStaff(payload: Omit<StaffRecord, 'id'>) {
   const db = await load();
-  const id = uuidv4();
+  const id = (Math.floor(100000 + Math.random() * 900000)).toString();//uuidv4();
   const record: StaffRecord = { id, ...payload } as StaffRecord;
   db.staff[id] = record;
   await persist();

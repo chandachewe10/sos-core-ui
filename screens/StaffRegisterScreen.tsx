@@ -51,7 +51,7 @@ export default function StaffRegisterScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Staff Registration</Text>
 
-      <TextInput style={styles.input} placeholder="Phone e.g. +2637..." value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+      <TextInput style={styles.input} placeholder="Phone e.g. +26097..." value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
       <TextInput style={styles.input} placeholder="Full names" value={fullName} onChangeText={setFullName} />
       <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" />
       <TextInput style={styles.input} placeholder="Address" value={address} onChangeText={setAddress} />

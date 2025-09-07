@@ -87,7 +87,8 @@ export default function StaffSignatureScreen() {
   );
 }
 
-const style = `.m-signature-pad--footer {display: none; margin: 0px;} body,html {height: 100%}`;
+const style = `.m-signature-pad--footer {margin: 0px;} body,html {height: 96%}`;
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
