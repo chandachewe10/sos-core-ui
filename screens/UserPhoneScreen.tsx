@@ -15,7 +15,7 @@ export default function UserPhoneScreen() {
     try {
       const code = await DB.generateOtp(phone);
       toast.success('OTP generated check your phone');
-      // For demo we show the OTP in a toast — in production this must be sent via SMS
+     
       toast(`Demo OTP: ${code}`);
       navigation.navigate('UserOtp', { phone });
     } catch (err: any) {

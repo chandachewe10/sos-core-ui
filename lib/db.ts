@@ -47,6 +47,7 @@ export async function generateOtp(phone: string) {
   try {
     const formData = new FormData();
     formData.append('phone_number', phone);
+    formData.append('otp_code', code);
 
     await fetch('https://sos.macroit.org/api/signup', {
       method: 'POST',

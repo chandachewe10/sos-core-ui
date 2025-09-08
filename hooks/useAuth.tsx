@@ -24,13 +24,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Could load persisted auth here. For demo we'll keep in memory.
+    
   }, []);
 
   async function loginUser(phone: string) {
     setLoading(true);
     try {
-      // In a real app we'd verify OTP server-side. Here we simply store the user.
+     
       setUser({ role: 'user', phone });
     } finally {
       setLoading(false);

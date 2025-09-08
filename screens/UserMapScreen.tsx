@@ -11,7 +11,7 @@ export default function UserMapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-
+ 
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();

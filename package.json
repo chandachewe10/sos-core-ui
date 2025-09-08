@@ -5,14 +5,15 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.4.0",
     "@clerk/clerk-react": "5.0.0",
+    "@maplibre/maplibre-react-native": "^10.2.1",
     "@react-native-async-storage/async-storage": "^1.18.0",
     "@react-native-community/slider": "5.0.1",
     "@react-navigation/bottom-tabs": "7.4.7",

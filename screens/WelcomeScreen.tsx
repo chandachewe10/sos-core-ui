@@ -2,8 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-// Defensive runtime requires to avoid invalid element types in environments
-// where optional native modules aren't available (web / missing native deps).
+
 const LinearGradient = (() => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
