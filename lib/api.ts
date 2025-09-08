@@ -1,25 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-/**
- * API client for the SOS app.
- *
- * NOTES / ASSUMPTIONS:
- * - Update BASE_URL to point at your backend if you don't set it via setBaseUrl.
- * - Assumed endpoints (feel free to change to match your backend):
- *   POST /auth/send-otp            { phone }
- *   POST /auth/verify-otp          { phone, code }
- *   POST /staff/register           multipart/form-data (fields + files)
- *   POST /staff/login              { phone, password }
- *   POST /staff/submit-signature   { staffId, signatureDataUrl }
- *   GET  /staff/pending
- *   POST /staff/:id/approve
- *   POST /sos                      { latitude, longitude, description }
- *   GET  /sos                      (list of SOS events for staff)
- *   GET  /me                       (profile)
- *
- * If your API paths differ rename the methods or change the path constants below.
- */
-
 const STORAGE_TOKEN_KEY = '@sos_app_token';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
