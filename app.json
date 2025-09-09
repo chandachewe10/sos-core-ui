@@ -4,7 +4,11 @@
     "slug": "umoyo-sos",
     "version": "1.0.0",
     "sdkVersion": "53.0.0",
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -23,6 +27,14 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "android": {
+      "package": "com.x2020100.umoyosos",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBuKTu-PZKPSOIE4q0vHhfrgHQuKCAHdak"
+        }
+      }
     }
   }
 }
