@@ -16,3 +16,6 @@ android/app/build/
 
 # VSCode
 .vscode/
+
+# Env files
+.env

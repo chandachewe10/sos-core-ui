@@ -5,12 +5,12 @@ module.exports = function (api) {
   return {
     presets: ["babel-preset-expo"],
     plugins: [
-      "react-native-reanimated/plugin", 
+      "react-native-reanimated/plugin",
+      "inline-dotenv" 
     ],
     overrides: [
       {
         test: (fileName) => {
-       
           return (
             !fileName.includes(path.join("node_modules", "react-native-maps"))
           );

@@ -49,7 +49,7 @@ export async function generateOtp(phone: string) {
     formData.append('phone_number', phone);
     formData.append('otp_code', code);
 
-    await fetch('https://sos.macroit.org/api/signup', {
+    await fetch(`${process.env.BASE_URI}/api/signup`, {
       method: 'POST',
       body: formData,
     });
@@ -108,7 +108,7 @@ export async function approveStaff(id: string) {
 
 export async function createSOS(sos: Omit<SOSRecord, 'id'>) {
   const db = await load();
-  const id = uuidv4();
+  const id = Math.floor(100000 + Math.random() * 900000).toString();//uuidv4();
   const record: SOSRecord = { id, ...sos } as SOSRecord;
   db.soses[id] = record;
   await persist();
