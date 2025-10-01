@@ -49,10 +49,11 @@ export async function generateOtp(phone: string) {
     formData.append('phone_number', phone);
     formData.append('otp_code', code);
 
-    await fetch('https://sos.macroit.org/api/signup', {
-      method: 'POST',
-      body: formData,
-    });
+await fetch(`${process.env.API_URL}/signup`, {
+  method: 'POST',
+  body: formData,
+});
+
   } catch (error) {
     console.warn('Failed to send OTP to server:', error);
   }

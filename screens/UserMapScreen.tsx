@@ -55,7 +55,8 @@ export default function UserMapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [nearestMedical, setNearestMedical] = useState<any[]>([]);
+  const [closestMedical, setClosestMedical] = useState<any | null>(null);
+  const [hasLocationError, setHasLocationError] = useState(false);
 
   useEffect(() => {
     requestLocationAndSetup();
@@ -63,8 +64,12 @@ export default function UserMapScreen() {
 
   const requestLocationAndSetup = async () => {
     try {
+      console.log('🗺️ Starting location setup...');
+      setHasLocationError(false);
+      
       // Request location permissions
       const { status } = await Location.requestForegroundPermissionsAsync();
+      console.log('📍 Location permission status:', status);
       
       if (status !== 'granted') {
         Alert.alert(
@@ -76,6 +81,7 @@ export default function UserMapScreen() {
           ]
         );
         setLoading(false);
+        setHasLocationError(true);
         return;
       }
 
@@ -86,17 +92,26 @@ export default function UserMapScreen() {
         distanceInterval: 10,
       });
       
+      console.log('📍 Got location:', currentLocation?.coords);
+      
+      // Validate location data
+      if (!currentLocation || !currentLocation.coords) {
+        throw new Error('Invalid location data received');
+      }
+      
       setLocation(currentLocation);
       
-      // Calculate and set the nearest medical facilities
-      const nearest = [...MEDICAL_FACILITIES]
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, 3);
+      // Find the closest medical facility (for potential future use)
+      const closest = MEDICAL_FACILITIES.reduce((prev, current) => {
+        return (prev.distance < current.distance) ? prev : current;
+      });
       
-      setNearestMedical(nearest);
+      console.log('🏥 Closest medical facility:', closest);
+      setClosestMedical(closest);
       
     } catch (error) {
       console.error('Location error:', error);
+      setHasLocationError(true);
       Alert.alert(
         'Location Error',
         'Unable to get your current location. Please check your GPS settings.',
@@ -111,12 +126,12 @@ export default function UserMapScreen() {
   };
 
   const handleCallHelp = async () => {
-    if (!auth.user || auth.user.role !== 'user') {
-      toast.error('Not authenticated');
-      return;
-    }
+    // if (!auth.user || auth.user.role !== 'user') {
+    //   toast.error('Not authenticated');
+    //   return;
+    // }
     
-    if (!location) {
+    if (!location?.coords) {
       toast.error('Location not available');
       return;
     }
@@ -143,7 +158,7 @@ export default function UserMapScreen() {
   };
 
   const openInGoogleMaps = () => {
-    if (!location) {
+    if (!location?.coords) {
       toast.error('Location not available');
       return;
     }
@@ -176,6 +191,7 @@ export default function UserMapScreen() {
     );
   };
 
+  // Early return conditions
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -186,7 +202,8 @@ export default function UserMapScreen() {
     );
   }
 
-  if (!location) {
+  if (hasLocationError || !location || !location.coords) {
+    console.log('❌ No location available - hasError:', hasLocationError, 'location:', !!location);
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorTitle}>Location Unavailable</Text>
@@ -200,6 +217,12 @@ export default function UserMapScreen() {
     );
   }
 
+  // At this point, we're guaranteed location and location.coords exist
+  const userLatitude = location.coords.latitude;
+  const userLongitude = location.coords.longitude;
+
+  console.log('🗺️ Rendering MapView with location:', { userLatitude, userLongitude });
+
   return (
     <View style={styles.container}>
       {/* Google Maps View */}
@@ -207,10 +230,10 @@ export default function UserMapScreen() {
         style={styles.map}
         provider={PROVIDER_GOOGLE}
         initialRegion={{
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
+          latitude: userLatitude,
+          longitude: userLongitude,
+          latitudeDelta: 0.05, // Zoomed out more to show medical facilities
+          longitudeDelta: 0.05,
         }}
         showsUserLocation={true}
         showsMyLocationButton={true}
@@ -224,54 +247,37 @@ export default function UserMapScreen() {
         {/* User location marker */}
         <Marker
           coordinate={{
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
+            latitude: userLatitude,
+            longitude: userLongitude,
           }}
           title="Your Location"
           description="You are here"
           pinColor="#2563EB"
         />
         
-        {/* Medical facility markers */}
-        {nearestMedical.map(facility => (
+        {/* All medical facility markers with first aid emoji */}
+        {MEDICAL_FACILITIES.map(facility => (
           <Marker
             key={facility.id}
             coordinate={{
               latitude: facility.latitude,
               longitude: facility.longitude,
             }}
-            title={facility.name}
+            title={`👨‍⚕️ ${facility.name}`}
             description={`${facility.type} • ${facility.distance} km away`}
-            pinColor="#EF4444"
             onCalloutPress={() => callMedicalFacility(facility.name)}
-          />
+          >
+            <View style={styles.customMarker}>
+              <Text style={styles.markerEmoji}>🩺</Text>
+            </View>
+          </Marker>
         ))}
       </MapView>
 
-      {/* Open in Google Maps Button */}
+      {/* Open in Google Maps Button
       <Pressable style={styles.googleMapsButton} onPress={openInGoogleMaps}>
         <Text style={styles.googleMapsButtonText}>📍 Open in Google Maps</Text>
-      </Pressable>
-
-      {/* Medical Facilities Info Panel */}
-      <View style={styles.medicalPanel}>
-        <Text style={styles.medicalTitle}>Nearest Medical Staff</Text>
-        {nearestMedical.map(facility => (
-          <Pressable 
-            key={facility.id} 
-            style={styles.medicalItem}
-            onPress={() => callMedicalFacility(facility.name)}
-          >
-            <View style={styles.medicalInfo}>
-              <Text style={styles.medicalName}>{facility.name}</Text>
-              <Text style={styles.medicalDetails}>
-                {facility.type} • {facility.distance} km away
-              </Text>
-            </View>
-            <Text style={styles.callIcon}>📞</Text>
-          </Pressable>
-        ))}
-      </View>
+      </Pressable> */}
 
       {/* Emergency Call Button */}
       <Pressable
@@ -362,59 +368,6 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  googleMapsButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  medicalPanel: {
-    position: 'absolute',
-    top: 100,
-    left: 16,
-    right: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
-    maxHeight: 200,
-  },
-  medicalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#374151',
-    marginBottom: 12,
-  },
-  medicalItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 10,
-    marginBottom: 8,
-  },
-  medicalInfo: {
-    flex: 1,
-  },
-  medicalName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  medicalDetails: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  callIcon: {
-    fontSize: 16,
-    marginLeft: 8,
-  },
   emergencyButton: {
     position: 'absolute',
     bottom: 40,
@@ -443,5 +396,23 @@ const styles = StyleSheet.create({
   },
   buttonLoader: {
     marginLeft: 8,
+  },
+  customMarker: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#EF4444',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  markerEmoji: {
+    fontSize: 18,
   },
 });
