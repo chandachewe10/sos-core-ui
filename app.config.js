@@ -26,7 +26,6 @@ export default {
       },
       config: {
         usesNonExemptEncryption: false,
-      
         googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_KEY || "",
       },
     },
@@ -41,14 +40,12 @@ export default {
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
         "FOREGROUND_SERVICE",
-        // Add these permissions for better location access
         "ACCESS_BACKGROUND_LOCATION",
       ],
     },
     web: {
       favicon: "./assets/favicon.png",
     },
-    // Add plugins section for better compatibility
     plugins: [
       [
         "expo-location",
@@ -59,5 +56,10 @@ export default {
         }
       ]
     ],
+    extra: {
+      eas: {
+        projectId: "30d99b7d-3659-4024-934c-a536b5357da6"
+      }
+    }
   },
 };
