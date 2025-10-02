@@ -14,7 +14,9 @@ export default {
     },
     updates: {
       fallbackToCacheTimeout: 0,
+      url: "https://u.expo.dev/30d99b7d-3659-4024-934c-a536b5357da6"
     },
+    runtimeVersion: "1.0.0", // <-- static version for bare workflow
     assetBundlePatterns: ["**/*"],
     ios: {
       supportsTablet: true,
@@ -50,9 +52,12 @@ export default {
       [
         "expo-location",
         {
-          locationAlwaysAndWhenInUsePermission: "Allow Moyo SOS to use your location to help emergency responders find you.",
-          locationAlwaysPermission: "Allow Moyo SOS to use your location to help emergency responders find you.",
-          locationWhenInUsePermission: "Allow Moyo SOS to use your location to help emergency responders find you.",
+          locationAlwaysAndWhenInUsePermission:
+            "Allow Moyo SOS to use your location to help emergency responders find you.",
+          locationAlwaysPermission:
+            "Allow Moyo SOS to use your location to help emergency responders find you.",
+          locationWhenInUsePermission:
+            "Allow Moyo SOS to use your location to help emergency responders find you.",
         }
       ]
     ],

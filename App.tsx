@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Toaster } from 'sonner-native';
+import * as Updates from 'expo-updates';  // 👈 Added this
 
 // Screens
 import WelcomeScreen from './screens/WelcomeScreen';
@@ -31,17 +32,26 @@ export default function App(): JSX.Element {
   const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
-    // Initialize API client base URL and restore token from storage
-    api.setBaseUrl(API_BASE_URL);
-    (async () => {
+    async function prepareApp() {
       try {
+        // 1. Configure API
+        api.setBaseUrl(API_BASE_URL);
         await api.loadTokenFromStorage();
+
+        // 2. Check for OTA updates 🚀
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          await Updates.reloadAsync(); // restarts app with new code
+        }
       } catch (err) {
-        console.warn('Failed to load token', err);
+        console.warn('Startup error:', err);
       } finally {
         setInitializing(false);
       }
-    })();
+    }
+
+    prepareApp();
   }, []);
 
   if (initializing) {
@@ -64,8 +74,7 @@ export default function App(): JSX.Element {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider style={styles.container}>
         <StatusBar barStyle="light-content" />
-         
-       
+        
         <AuthProvider>
           <NavigationContainer>
             <Stack.Navigator
@@ -87,12 +96,13 @@ export default function App(): JSX.Element {
               <Stack.Screen name="StaffLogin" component={StaffLoginScreen} />
               <Stack.Screen name="StaffDashboard" component={StaffDashboardScreen} />
 
-              {/* Admin / dev helper */}
+              {/* Admin */}
               <Stack.Screen name="AdminApprove" component={AdminApproveScreen} />
             </Stack.Navigator>
           </NavigationContainer>
         </AuthProvider>
-          {isComponentType(MaybeToaster) ? <MaybeToaster /> : null}
+
+        {isComponentType(MaybeToaster) ? <MaybeToaster /> : null}
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

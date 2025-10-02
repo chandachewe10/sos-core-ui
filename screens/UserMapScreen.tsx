@@ -4,7 +4,7 @@ import * as Location from 'expo-location';
 import { useAuth } from '../hooks/useAuth';
 import * as DB from '../lib/db';
 import { toast } from 'sonner-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 
 // Mock data for medical facilities (in a real app, you'd fetch this from an API)
 const MEDICAL_FACILITIES = [
@@ -64,12 +64,12 @@ export default function UserMapScreen() {
 
   const requestLocationAndSetup = async () => {
     try {
-      console.log('🗺️ Starting location setup...');
+      console.log('Starting location setup...');
       setHasLocationError(false);
       
       // Request location permissions
       const { status } = await Location.requestForegroundPermissionsAsync();
-      console.log('📍 Location permission status:', status);
+      console.log('Location permission status:', status);
       
       if (status !== 'granted') {
         Alert.alert(
@@ -92,7 +92,7 @@ export default function UserMapScreen() {
         distanceInterval: 10,
       });
       
-      console.log('📍 Got location:', currentLocation?.coords);
+      console.log('Got location:', currentLocation?.coords);
       
       // Validate location data
       if (!currentLocation || !currentLocation.coords) {
@@ -106,7 +106,7 @@ export default function UserMapScreen() {
         return (prev.distance < current.distance) ? prev : current;
       });
       
-      console.log('🏥 Closest medical facility:', closest);
+      console.log('Closest medical facility:', closest);
       setClosestMedical(closest);
       
     } catch (error) {
@@ -203,7 +203,7 @@ export default function UserMapScreen() {
   }
 
   if (hasLocationError || !location || !location.coords) {
-    console.log('❌ No location available - hasError:', hasLocationError, 'location:', !!location);
+    console.log('No location available - hasError:', hasLocationError, 'location:', !!location);
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorTitle}>Location Unavailable</Text>
@@ -221,7 +221,7 @@ export default function UserMapScreen() {
   const userLatitude = location.coords.latitude;
   const userLongitude = location.coords.longitude;
 
-  console.log('🗺️ Rendering MapView with location:', { userLatitude, userLongitude });
+  console.log('Rendering MapView with location:', { userLatitude, userLongitude });
 
   return (
     <View style={styles.container}>
@@ -263,20 +263,26 @@ export default function UserMapScreen() {
               latitude: facility.latitude,
               longitude: facility.longitude,
             }}
-            title={`👨‍⚕️ ${facility.name}`}
-            description={`${facility.type} • ${facility.distance} km away`}
-            onCalloutPress={() => callMedicalFacility(facility.name)}
           >
             <View style={styles.customMarker}>
               <Text style={styles.markerEmoji}>🩺</Text>
             </View>
+            <Callout onPress={() => callMedicalFacility(facility.name)}>
+              <View style={styles.calloutContainer}>
+                <Text style={styles.calloutTitle}>👨‍⚕️ {facility.name}</Text>
+                <Text style={styles.calloutDescription}>
+                  {facility.type} • {facility.distance} km away
+                </Text>
+                <Text style={styles.calloutTap}>Tap to call</Text>
+              </View>
+            </Callout>
           </Marker>
         ))}
       </MapView>
 
       {/* Open in Google Maps Button
       <Pressable style={styles.googleMapsButton} onPress={openInGoogleMaps}>
-        <Text style={styles.googleMapsButtonText}>📍 Open in Google Maps</Text>
+        <Text style={styles.googleMapsButtonText}>Open in Google Maps</Text>
       </Pressable> */}
 
       {/* Emergency Call Button */}
@@ -286,7 +292,7 @@ export default function UserMapScreen() {
         disabled={sending}
       >
         <Text style={styles.emergencyButtonText}>
-          {sending ? 'Sending Emergency Alert...' : '🚨 CALL FOR HELP'}
+          {sending ? 'Sending Emergency Alert...' : 'CALL FOR HELP'}
         </Text>
         {sending && <ActivityIndicator size="small" color="#fff" style={styles.buttonLoader} />}
       </Pressable>
@@ -414,5 +420,24 @@ const styles = StyleSheet.create({
   },
   markerEmoji: {
     fontSize: 18,
+  },
+  calloutContainer: {
+    padding: 10,
+    minWidth: 200,
+  },
+  calloutTitle: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  calloutDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  calloutTap: {
+    fontSize: 12,
+    color: '#2563EB',
+    marginTop: 4,
   },
 });

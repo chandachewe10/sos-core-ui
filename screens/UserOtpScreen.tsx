@@ -33,7 +33,7 @@ export default function UserOtpScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Enter OTP sent to {phone}</Text>
+      <Text style={styles.title}>Enter OTP sent to your phone {phone}</Text>
       <TextInput
         style={styles.input}
         placeholder="123456"
