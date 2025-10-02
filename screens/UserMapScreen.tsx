@@ -228,7 +228,7 @@ export default function UserMapScreen() {
       {/* Google Maps View */}
       <MapView
         style={styles.map}
-        provider={PROVIDER_GOOGLE}
+      //  provider={PROVIDER_GOOGLE}
         initialRegion={{
           latitude: userLatitude,
           longitude: userLongitude,
