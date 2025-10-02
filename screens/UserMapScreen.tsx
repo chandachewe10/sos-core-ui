@@ -6,7 +6,7 @@ import * as DB from '../lib/db';
 import { toast } from 'sonner-native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 
-// Mock data for medical facilities (in a real app, you'd fetch this from an API)
+// Mock data for medical facilities with Zambian phone numbers
 const MEDICAL_FACILITIES = [
   {
     id: 1,
@@ -14,7 +14,8 @@ const MEDICAL_FACILITIES = [
     latitude: -15.3875, // Lusaka, Zambia coordinates
     longitude: 28.3228,
     type: "Hospital",
-    distance: 0.8
+    distance: 0.8,
+    phone: "+260955123456" // Zambian mobile format
   },
   {
     id: 2,
@@ -22,7 +23,8 @@ const MEDICAL_FACILITIES = [
     latitude: -15.3940,
     longitude: 28.3158,
     type: "Medical Center",
-    distance: 1.2
+    distance: 1.2,
+    phone: "+260966234567"
   },
   {
     id: 3,
@@ -30,7 +32,8 @@ const MEDICAL_FACILITIES = [
     latitude: -15.3810,
     longitude: 28.3298,
     type: "Clinic",
-    distance: 1.5
+    distance: 1.5,
+    phone: "+260977345678"
   },
   {
     id: 4,
@@ -38,7 +41,8 @@ const MEDICAL_FACILITIES = [
     latitude: -15.3745,
     longitude: 28.3355,
     type: "Hospital",
-    distance: 2.1
+    distance: 2.1,
+    phone: "+260211234567" // Zambian landline format
   },
   {
     id: 5,
@@ -46,7 +50,8 @@ const MEDICAL_FACILITIES = [
     latitude: -15.3945,
     longitude: 28.3098,
     type: "Clinic",
-    distance: 2.3
+    distance: 2.3,
+    phone: "+260211345678"
   }
 ];
 
@@ -172,23 +177,36 @@ export default function UserMapScreen() {
     });
   };
 
-  const callMedicalFacility = (facilityName: string) => {
-    // In a real app, you would have phone numbers for each facility
+  const callMedicalFacility = (facility: any) => {
     Alert.alert(
       'Call Medical Facility',
-      `Would you like to call ${facilityName}?`,
+      `Would you like to call ${facility.name} at ${formatPhoneNumber(facility.phone)}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         { 
           text: 'Call', 
           onPress: () => {
-            // Replace with actual phone number
-            // Linking.openURL('tel:+1234567890');
-            toast.success(`Calling ${facilityName}...`);
+            // Use the tel: URL scheme to initiate a phone call
+            Linking.openURL(`tel:${facility.phone}`).catch(err => {
+              console.error('Failed to initiate call:', err);
+              toast.error('Could not make phone call');
+            });
           }
         }
       ]
     );
+  };
+
+  // Helper function to format phone numbers for display
+  const formatPhoneNumber = (phone: string) => {
+    // Format Zambian numbers: +260 XX XXX XXXX
+    if (phone.startsWith('+260')) {
+      const rest = phone.slice(4);
+      if (rest.length === 9) {
+        return `+260 ${rest.slice(0, 2)} ${rest.slice(2, 5)} ${rest.slice(5)}`;
+      }
+    }
+    return phone;
   };
 
   // Early return conditions
@@ -267,11 +285,14 @@ export default function UserMapScreen() {
             <View style={styles.customMarker}>
               <Text style={styles.markerEmoji}>🩺</Text>
             </View>
-            <Callout onPress={() => callMedicalFacility(facility.name)}>
+            <Callout onPress={() => callMedicalFacility(facility)}>
               <View style={styles.calloutContainer}>
                 <Text style={styles.calloutTitle}>👨‍⚕️ {facility.name}</Text>
                 <Text style={styles.calloutDescription}>
                   {facility.type} • {facility.distance} km away
+                </Text>
+                <Text style={styles.calloutPhone}>
+                  📞 {formatPhoneNumber(facility.phone)}
                 </Text>
                 <Text style={styles.calloutTap}>Tap to call</Text>
               </View>
@@ -279,11 +300,6 @@ export default function UserMapScreen() {
           </Marker>
         ))}
       </MapView>
-
-      {/* Open in Google Maps Button
-      <Pressable style={styles.googleMapsButton} onPress={openInGoogleMaps}>
-        <Text style={styles.googleMapsButtonText}>Open in Google Maps</Text>
-      </Pressable> */}
 
       {/* Emergency Call Button */}
       <Pressable
@@ -360,20 +376,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  googleMapsButton: {
-    position: 'absolute',
-    top: 50,
-    right: 16,
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 25,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
   emergencyButton: {
     position: 'absolute',
     bottom: 40,
@@ -423,7 +425,7 @@ const styles = StyleSheet.create({
   },
   calloutContainer: {
     padding: 10,
-    minWidth: 200,
+    minWidth: 220,
   },
   calloutTitle: {
     fontWeight: 'bold',
@@ -435,9 +437,16 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginBottom: 4,
   },
+  calloutPhone: {
+    fontSize: 14,
+    color: '#2563EB',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
   calloutTap: {
     fontSize: 12,
-    color: '#2563EB',
+    color: '#10B981',
     marginTop: 4,
+    fontWeight: '600',
   },
 });
