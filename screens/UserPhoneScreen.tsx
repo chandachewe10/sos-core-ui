@@ -13,32 +13,46 @@ export default function UserPhoneScreen() {
   async function handleSendOtp() {
   if (!phone) return toast.error('Enter phone number');
   setLoading(true);
+
   try {
     const ok = await DB.generateOtp(phone);
 
-    
-    console.log('OTP Response:', ok);
 
-    
+    // Check for validation or API failure
+    if (!ok || ok.status !== 201) {
+      const errorMsg =
+        ok.data?.errors?.phone_number?.[0] ||
+        ok.data?.message ||
+        'Failed to generate OTP';
+
+      console.log('OTP Error:', errorMsg);
+      toast.error(errorMsg);
+      return;
+    }
+
+    // Successful case
     if (ok.status === 201) {
       console.log('Full response data:', ok.data);
 
-      const token = ok.data?.data?.access_token; 
+      const token = ok.data?.data?.access_token;
       setToken(token);
 
       toast.success('OTP generated, check your phone');
       console.log('Registration successful:', token);
       navigation.navigate('UserOtp', { phone, token });
     }
-
   } catch (err: any) {
+    const errorMessage =
+      typeof err === 'object' && err !== null && 'message' in err
+        ? (err as { message?: string }).message
+        : undefined;
+
     console.error('OTP generation error:', err);
-    toast.error(err.message || 'Failed to generate OTP');
+    toast.error(errorMessage || 'Failed to generate OTP');
   } finally {
     setLoading(false);
   }
 }
-
 
   return (
     <View style={styles.container}>

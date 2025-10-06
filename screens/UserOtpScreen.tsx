@@ -29,7 +29,7 @@ async function handleVerify() {
 
     toast.success('OTP verified successfully!');
     console.log('OTP Verified:', result.data);
-    navigation.navigate('UserOtpScreen', { phone, token });
+    navigation.navigate('UserMap', { phone, token });
   } catch (err: any) {
     console.error('Verify OTP error:', err);
     toast.error(err.message || 'Failed to verify OTP');

@@ -52,9 +52,12 @@ export async function generateOtp(phone: string) {
       ok: response.ok,
       data,
     };
-  } catch (error) {
-    console.warn('Failed to send OTP to server:', error);
-    throw error;
+  }catch (error: any) {
+
+    return {
+      success: false,
+      message: error.message || 'Failed to send OTP',
+    };
   }
 }
 
@@ -85,7 +88,7 @@ export async function verifyOtp(phone: string, code: string, token: string) {
 
     return data;
   } catch (error: any) {
-    console.error('OTP verification error:', error);
+
     return {
       success: false,
       message: error.message || 'Failed to verify OTP',
