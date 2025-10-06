@@ -8,22 +8,37 @@ export default function UserPhoneScreen() {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation<any>();
+  const [token, setToken] = useState('');
 
   async function handleSendOtp() {
-    if (!phone) return toast.error('Enter phone number');
-    setLoading(true);
-    try {
-      const code = await DB.generateOtp(phone);
-      toast.success('OTP generated check your phone');
-     
-      toast(`Demo OTP: ${code}`);
-      navigation.navigate('UserOtp', { phone });
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to generate OTP');
-    } finally {
-      setLoading(false);
+  if (!phone) return toast.error('Enter phone number');
+  setLoading(true);
+  try {
+    const ok = await DB.generateOtp(phone);
+
+    
+    console.log('OTP Response:', ok);
+
+    
+    if (ok.status === 201) {
+      console.log('Full response data:', ok.data);
+
+      const token = ok.data?.data?.access_token; 
+      setToken(token);
+
+      toast.success('OTP generated, check your phone');
+      console.log('Registration successful:', token);
+      navigation.navigate('UserOtp', { phone, token });
     }
+
+  } catch (err: any) {
+    console.error('OTP generation error:', err);
+    toast.error(err.message || 'Failed to generate OTP');
+  } finally {
+    setLoading(false);
   }
+}
+
 
   return (
     <View style={styles.container}>

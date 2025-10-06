@@ -14,6 +14,8 @@ const defaultDB: PersistedDB = { staff: {}, otps: {}, soses: {} };
 
 let memory: PersistedDB | null = null;
 
+
+
 async function load() {
   if (memory) return memory;
   const raw = await AsyncStorage.getItem(STORAGE_KEY);
@@ -32,49 +34,69 @@ async function persist() {
 }
 
 export async function generateOtp(phone: string) {
-  
-  const db = await load();
-
-  
-  const code = (Math.floor(100000 + Math.random() * 900000)).toString();
-  const otp: OTPStore = { phone, code, createdAt: Date.now() };
-
-
-  db.otps[phone] = otp;
-  await persist();
-
-  
   try {
     const formData = new FormData();
     formData.append('phone_number', phone);
-    formData.append('otp_code', code);
 
-await fetch(`${process.env.API_URL}/signup`, {
-  method: 'POST',
-  body: formData,
-});
+    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/signup`, {
+      method: 'POST',
+      body: formData,
+    });
 
+    
+    const data = await response.json();
+
+    
+    return {
+      status: response.status,
+      ok: response.ok,
+      data,
+    };
   } catch (error) {
     console.warn('Failed to send OTP to server:', error);
+    throw error;
   }
-
-  // 5. Return the code locally (for demo/testing)
-  return code;
 }
 
 
-export async function verifyOtp(phone: string, code: string) {
-  const db = await load();
-  const otp = db.otps[phone];
-  if (!otp) return true;
-  // expire after 10 minutes
-  if (Date.now() - otp.createdAt > 10 * 60 * 1000) return false;
-  return otp.code === code;
+export async function verifyOtp(phone: string, code: string, token: string) {
+  console.log(`Verifying OTP: ${code} for user: ${phone}`);
+
+  const formData = new FormData();
+  formData.append('otp_code', code);
+  formData.append('phone_number', phone || '');
+
+  try {
+    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/verifyOtp`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,    
+        'Accept': 'application/json',          
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+    console.log('OTP verification response:', data);
+
+    if (!response.ok) {
+      throw new Error(data.message || 'OTP verification failed');
+    }
+
+    return data;
+  } catch (error: any) {
+    console.error('OTP verification error:', error);
+    return {
+      success: false,
+      message: error.message || 'Failed to verify OTP',
+    };
+  }
 }
+
 
 export async function createStaff(payload: Omit<StaffRecord, 'id'>) {
   const db = await load();
-  const id = (Math.floor(100000 + Math.random() * 900000)).toString();//uuidv4();
+  const id = (Math.floor(100000 + Math.random() * 900000)).toString();
   const record: StaffRecord = { id, ...payload } as StaffRecord;
   db.staff[id] = record;
   await persist();

@@ -8,28 +8,36 @@ import { toast } from 'sonner-native';
 export default function UserOtpScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const { phone } = route.params || {};
+  const { phone, token } = route.params || {};
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const auth = useAuth();
 
-  async function handleVerify() {
-    
-    if (!phone) return toast.error('Missing phone');
-    if (otp.length !== 6) return toast.error('Enter 6-digit code');
-    setLoading(true);
-    try {
-      const ok = await DB.verifyOtp(phone, otp);
-      if (!ok) return toast.error('Invalid OTP');
-      await auth.loginUser(phone);
-      toast.success('Phone verified');
-      navigation.reset({ index: 0, routes: [{ name: 'UserMap' }] });
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to verify');
-    } finally {
-      setLoading(false);
+async function handleVerify() {
+  if (!phone) return toast.error('Missing phone number');
+  if (otp.length !== 6) return toast.error('Enter 6-digit code');
+
+  setLoading(true);
+  try {
+  
+    const result = await DB.verifyOtp(phone, otp, token);
+   console.log('Full OTP verify response:', result);
+    if (result?.success === false || !result) {
+      toast.error(result?.message || 'Invalid OTP');
+      return;
     }
+
+    toast.success('OTP verified successfully!');
+    console.log('OTP Verified:', result.data);
+    navigation.navigate('UserOtpScreen', { phone, token });
+  } catch (err: any) {
+    console.error('Verify OTP error:', err);
+    toast.error(err.message || 'Failed to verify OTP');
+  } finally {
+    setLoading(false);
   }
+}
+
 
   return (
     <View style={styles.container}>
