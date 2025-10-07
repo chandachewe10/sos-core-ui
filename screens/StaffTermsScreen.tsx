@@ -5,10 +5,11 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 export default function StaffTermsScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const { staffId } = route.params || {};
+  const { token, phone } = route.params || {};
 
   function handleContinue() {
-    navigation.navigate('StaffSignature', { staffId });
+    navigation.navigate('StaffSignature', { phone, token });
+     console.log('Phone Number after terms and conditions:', phone);
   }
 
   return (

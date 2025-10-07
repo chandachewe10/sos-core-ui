@@ -43,16 +43,16 @@ export async function generateOtp(phone: string) {
       body: formData,
     });
 
-    
+
     const data = await response.json();
 
-    
+
     return {
       status: response.status,
       ok: response.ok,
       data,
     };
-  }catch (error: any) {
+  } catch (error: any) {
 
     return {
       success: false,
@@ -73,8 +73,8 @@ export async function verifyOtp(phone: string, code: string, token: string) {
     const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/verifyOtp`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,    
-        'Accept': 'application/json',          
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
       },
       body: formData,
     });
@@ -97,14 +97,91 @@ export async function verifyOtp(phone: string, code: string, token: string) {
 }
 
 
-export async function createStaff(payload: Omit<StaffRecord, 'id'>) {
-  const db = await load();
-  const id = (Math.floor(100000 + Math.random() * 900000)).toString();
-  const record: StaffRecord = { id, ...payload } as StaffRecord;
-  db.staff[id] = record;
-  await persist();
-  return id;
+export async function createStaff(payload: {
+  phone: string;
+  fullName: string;
+  email: string;
+  address: string;
+  password: string;
+  hpczNumber: string;
+  nrcNumber: string;
+  nrc: string;
+  selfie: string;
+}) {
+  try {
+    const formData = new FormData();
+    formData.append('phone', payload.phone);
+    formData.append('fullName', payload.fullName);
+    formData.append('email', payload.email);
+    formData.append('address', payload.address);
+    formData.append('password', payload.password);
+    formData.append('hpczNumber', payload.hpczNumber);
+    formData.append('nrcNumber', payload.nrcNumber);
+    formData.append('nrc', payload.nrc);
+    formData.append('selfie', payload.selfie);
+
+    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/createMedicalStaff`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    return {
+      status: response.status,
+      ok: response.ok,
+      data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || 'Failed to submit staff registration',
+    };
+  }
 }
+
+
+
+
+export async function submitStaffSignature(payload: {
+  token: string;
+  phone: string;
+  signature: string;
+}) {
+  try {
+    const formData = new FormData();
+    formData.append('phone', payload.phone);
+    formData.append('signature', payload.signature); 
+
+    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/signature`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${payload.token}`,
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    return {
+      status: response.status,
+      ok: response.ok,
+      data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || 'Failed to submit signature',
+    };
+  }
+}
+
+
+
+
+
+
+
 
 export async function updateStaff(id: string, patch: Partial<StaffRecord>) {
   const db = await load();

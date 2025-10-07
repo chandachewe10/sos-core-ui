@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
 import { View, StyleSheet, Pressable, Text, Alert } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { useAuth } from '../hooks/useAuth';
+import * as FileSystem from 'expo-file-system';
+import * as DB from '../lib/db';
 import { toast } from 'sonner-native';
 
 // Dynamically require signature canvas to avoid undefined component type errors
@@ -16,21 +17,29 @@ try {
 export default function StaffSignatureScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const { staffId } = route.params || {};
-  const auth = useAuth();
+  const { token, phone } = route.params || {};
   const ref = useRef<any>(null);
 
-  function handleOK(signature: string) {
-    // signature is base64 png data URL
-    (async () => {
-      try {
-        await auth.submitStaffSignature(staffId, signature);
-        toast.success('Signature saved — submitted for approval');
-        navigation.navigate('StaffPending');
-      } catch (err: any) {
-        toast.error(err.message || 'Failed to save signature');
+  async function handleOK(signature: string) {
+    // signature is already a base64 data URL (data:image/png;base64,...)
+    try {
+      console.log('Phone Number before submitting signature:', phone);
+      const result = await DB.submitStaffSignature({
+  
+        token,
+        phone,
+        signature, 
+      });
+
+      if (!result.ok) {
+        throw new Error(result.data || result.message || 'Failed to save signature');
       }
-    })();
+
+      toast.success('Signature saved — submitted for approval');
+      navigation.navigate('StaffPending');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save signature');
+    }
   }
 
   function handleEmpty() {
@@ -38,19 +47,36 @@ export default function StaffSignatureScreen() {
   }
 
   async function saveWithoutCanvas() {
-    Alert.alert('No signature canvas', 'Signature feature is not available in this environment. Do you want to submit without a signature?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Submit', style: 'destructive', onPress: async () => {
-        try {
-          // Send an empty placeholder or special flag to backend
-          await auth.submitStaffSignature(staffId, '');
-          toast.success('Submitted without signature — pending approval');
-          navigation.navigate('StaffPending');
-        } catch (err: any) {
-          toast.error(err.message || 'Failed to submit');
-        }
-      } }
-    ]);
+    Alert.alert(
+      'No signature canvas',
+      'Signature feature is not available in this environment. Do you want to submit without a signature?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Submit',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+               console.log('Phone Number on submitting signature:', phone);
+              const result = await DB.submitStaffSignature({
+                token,
+                phone,
+                signature: '', 
+              });
+
+              if (!result.ok) {
+                throw new Error(result.data?.message || result.message || 'Failed to submit');
+              }
+
+              toast.success('Submitted without signature — pending approval');
+              navigation.navigate('StaffPending');
+            } catch (err: any) {
+              toast.error(err.message || 'Failed to submit');
+            }
+          },
+        },
+      ]
+    );
   }
 
   return (
@@ -63,15 +89,22 @@ export default function StaffSignatureScreen() {
             onOK={handleOK}
             onEmpty={handleEmpty}
             webStyle={style}
-            descriptionText="Sign above"
+            descriptionText=""
             clearText="Clear"
-            confirmText="Save"
+            confirmText="Save Signature"
           />
         ) : (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-            <Text style={{ textAlign: 'center', color: '#475569' }}>Signature pad not available in this environment.</Text>
-            <Text style={{ textAlign: 'center', marginTop: 8, color: '#475569' }}>You may submit without signature and the admin will follow up.</Text>
-            <Pressable style={{ marginTop: 12, padding: 12, backgroundColor: '#2563EB', borderRadius: 8 }} onPress={saveWithoutCanvas}>
+            <Text style={{ textAlign: 'center', color: '#475569' }}>
+              Signature pad not available in this environment.
+            </Text>
+            <Text style={{ textAlign: 'center', marginTop: 8, color: '#475569' }}>
+              You may submit without signature and the admin will follow up.
+            </Text>
+            <Pressable
+              style={{ marginTop: 12, padding: 12, backgroundColor: '#2563EB', borderRadius: 8 }}
+              onPress={saveWithoutCanvas}
+            >
               <Text style={{ color: '#fff', fontWeight: '700' }}>Submit without signature</Text>
             </Pressable>
           </View>
@@ -79,20 +112,93 @@ export default function StaffSignatureScreen() {
       </View>
 
       {Signature ? (
-        <Pressable style={styles.smallButton} onPress={() => ref.current?.clearSignature?.()}>
-          <Text>Clear</Text>
-        </Pressable>
+        <View style={styles.buttonRow}>
+          <Pressable
+            style={[styles.button, styles.clearButton]}
+            onPress={() => ref.current?.clearSignature?.()}
+          >
+            <Text style={styles.clearButtonText}>Clear</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.button, styles.saveButton]}
+            onPress={() => ref.current?.readSignature?.()}
+          >
+            <Text style={styles.saveButtonText}>Save Signature</Text>
+          </Pressable>
+        </View>
       ) : null}
     </View>
   );
 }
 
-const style = `.m-signature-pad--footer {margin: 0px;} body,html {height: 96%}`;
-
+const style = `
+  .m-signature-pad--footer {
+    display: none;
+  }
+  .m-signature-pad {
+    position: relative;
+  }
+  .m-signature-pad:before {
+    content: 'SIGN HERE';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    font-weight: 700;
+    color: #E2E8F0;
+    opacity: 0.3;
+    pointer-events: none;
+    letter-spacing: 4px;
+  }
+  body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  canvas {
+    border: 2px dashed #CBD5E1;
+  }
+`;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  title: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
-  pad: { flex: 1, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 12, overflow: 'hidden' },
-  smallButton: { alignItems: 'center', padding: 12, marginTop: 12 },
+  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+  title: { fontSize: 20, fontWeight: '700', marginBottom: 16, color: '#1E293B' },
+  pad: {
+    flex: 1,
+    borderWidth: 2,
+    borderColor: '#CBD5E1',
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#F8FAFC',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  button: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 10,
+  },
+  clearButton: {
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+  },
+  clearButtonText: {
+    color: '#475569',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  saveButton: {
+    backgroundColor: '#2563EB',
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 16,
+  },
 });
