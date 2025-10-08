@@ -98,14 +98,14 @@ return (
   <ScrollView contentContainerStyle={styles.container}>
     <Text style={styles.title}>Staff Registration</Text>
 
-    <TextInput style={styles.input} placeholder="Phone e.g. +26097..." value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholderTextColor="#94A3B8" />
-    <TextInput style={styles.input} placeholder="Full names" value={fullName} onChangeText={setFullName} placeholderTextColor="#94A3B8" />
-    <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" placeholderTextColor="#94A3B8" />
-    <TextInput style={styles.input} placeholder="Address" value={address} onChangeText={setAddress} placeholderTextColor="#94A3B8" />
-    <TextInput style={styles.input} placeholder="HPCZ Number" value={hpczNumber} onChangeText={setHpczNumber} placeholderTextColor="#94A3B8" />
-    <TextInput style={styles.input} placeholder="NRC Number" value={nrcNumber} onChangeText={setNrcNumber} placeholderTextColor="#94A3B8" />
-    <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry placeholderTextColor="#94A3B8" />
-    <TextInput style={styles.input} placeholder="Confirm Password" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry placeholderTextColor="#94A3B8" />
+    <TextInput style={styles.input} placeholder="Phone e.g. +26097..." value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholderTextColor="#94A3B8" autoCapitalize="none" autoCorrect={false}/>
+    <TextInput style={styles.input} placeholder="Full names" value={fullName} onChangeText={setFullName} placeholderTextColor="#94A3B8" autoCapitalize="none" autoCorrect={false}/>
+    <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" placeholderTextColor="#94A3B8" autoCapitalize="none" autoCorrect={false}/>
+    <TextInput style={styles.input} placeholder="Address" value={address} onChangeText={setAddress} placeholderTextColor="#94A3B8" autoCapitalize="none" autoCorrect={false}/>
+    <TextInput style={styles.input} placeholder="HPCZ Number" value={hpczNumber} onChangeText={setHpczNumber} placeholderTextColor="#94A3B8" autoCapitalize="none" autoCorrect={false}/>
+    <TextInput style={styles.input} placeholder="NRC Number" value={nrcNumber} onChangeText={setNrcNumber} placeholderTextColor="#94A3B8" autoCapitalize="none" autoCorrect={false}/>
+    <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry placeholderTextColor="#94A3B8" autoCapitalize="none" autoCorrect={false}/>
+    <TextInput style={styles.input} placeholder="Confirm Password" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry placeholderTextColor="#94A3B8" autoCapitalize="none" autoCorrect={false}/>
 
     <View style={styles.uploadRow}>
       <Pressable style={styles.uploadBox} onPress={() => pickImage(setNrcUri)}>

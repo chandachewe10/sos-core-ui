@@ -38,7 +38,7 @@ export async function generateOtp(phone: string) {
     const formData = new FormData();
     formData.append('phone_number', phone);
 
-    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/signup`, {
+    const response = await fetch(`https://sos.macroit.org/api/signup`, {
       method: 'POST',
       body: formData,
     });
@@ -70,7 +70,7 @@ export async function verifyOtp(phone: string, code: string, token: string) {
   formData.append('phone_number', phone || '');
 
   try {
-    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/verifyOtp`, {
+    const response = await fetch(`https://sos.macroit.org/api/verifyOtp`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -120,7 +120,7 @@ export async function createStaff(payload: {
     formData.append('nrc', payload.nrc);
     formData.append('selfie', payload.selfie);
 
-    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/createMedicalStaff`, {
+    const response = await fetch(`https://sos.macroit.org/api/createMedicalStaff`, {
       method: 'POST',
       body: formData,
     });
@@ -153,7 +153,7 @@ export async function submitStaffSignature(payload: {
     formData.append('phone', payload.phone);
     formData.append('signature', payload.signature); 
 
-    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/signature`, {
+    const response = await fetch(`https://sos.macroit.org/api/signature`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${payload.token}`,

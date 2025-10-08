@@ -19,6 +19,7 @@ import StaffPendingScreen from './screens/StaffPendingScreen';
 import StaffLoginScreen from './screens/StaffLoginScreen';
 import StaffDashboardScreen from './screens/StaffDashboardScreen';
 import AdminApproveScreen from './screens/AdminApproveScreen';
+import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 
 import { AuthProvider } from './hooks/useAuth';
 import { api } from './lib/api';
@@ -95,6 +96,7 @@ export default function App(): JSX.Element {
               <Stack.Screen name="StaffPending" component={StaffPendingScreen} />
               <Stack.Screen name="StaffLogin" component={StaffLoginScreen} />
               <Stack.Screen name="StaffDashboard" component={StaffDashboardScreen} />
+              <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
 
               {/* Admin */}
               <Stack.Screen name="AdminApprove" component={AdminApproveScreen} />

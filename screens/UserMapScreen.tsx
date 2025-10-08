@@ -221,7 +221,7 @@ export default function UserMapScreen() {
   }
 
   if (hasLocationError || !location || !location.coords) {
-    console.log('No location available - hasError:', hasLocationError, 'location:', !!location);
+   // console.log('No location available - hasError:', hasLocationError, 'location:', !!location);
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorTitle}>Location Unavailable</Text>
