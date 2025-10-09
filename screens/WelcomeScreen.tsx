@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 
 const LinearGradient = (() => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     return require('expo-linear-gradient').LinearGradient;
   } catch (err) {
     return null;
@@ -13,7 +12,6 @@ const LinearGradient = (() => {
 
 let LucideIcons: any = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   LucideIcons = require('lucide-react-native');
 } catch (err) {
   LucideIcons = null;
@@ -31,6 +29,7 @@ export default function WelcomeScreen() {
 
   const Content = (
     <>
+      {/* Header */}
       <View style={{ alignItems: 'center', marginVertical: 20 }}>
         <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'white', textAlign: 'center' }}>
           Emergency SOS
@@ -40,7 +39,9 @@ export default function WelcomeScreen() {
         </Text>
       </View>
 
+      {/* Cards Section */}
       <View style={styles.cards}>
+        {/* User Card */}
         <Pressable style={styles.card} onPress={() => navigation.navigate('UserPhone')}>
           <View style={styles.iconWrap}>
             {UserIcon ? <UserIcon color="#0B1220" width={28} height={28} /> : <Text>U</Text>}
@@ -51,27 +52,35 @@ export default function WelcomeScreen() {
           </Text>
         </Pressable>
 
-        <Pressable style={styles.card} onPress={() => navigation.navigate('StaffRegister')}>
+        {/* Combined Staff Card */}
+        <View style={styles.card}>
           <View style={[styles.iconWrap, { backgroundColor: '#FFE8D6' }]}>
             {FirstAidIcon ? <FirstAidIcon color="#0B1220" width={28} height={28} /> : <Text>F</Text>}
           </View>
-          <Text style={styles.cardTitle}>Register as Staff (Medical)</Text>
+
+          <Text style={styles.cardTitle}>Medical Staff Access</Text>
           <Text style={styles.cardSub}>
             Submit credentials, sign terms, and get approved to assist victims.
           </Text>
-        </Pressable>
-      </View>
 
-      <View style={styles.footer}>
-        <Pressable
-          onPress={() => navigation.navigate('StaffLogin')}
-          style={styles.loginButton}
-        >
-          <Text style={[styles.loginText, { textAlign: 'center' }]}>
-            Already registered? Login as staff
-          </Text>
+          <View style={styles.buttonGroup}>
+            <Pressable
+              style={[styles.actionButton, { backgroundColor: '#0B1220' }]}
+              onPress={() => navigation.navigate('StaffRegister')}
+            >
+              <Text style={styles.actionText}>Register as Staff</Text>
+            </Pressable>
 
-        </Pressable>
+            <Pressable
+              style={[styles.actionButton, { backgroundColor: '#E6E6E6' }]}
+              onPress={() => navigation.navigate('StaffLogin')}
+            >
+              <Text style={[styles.actionText, { color: '#0B1220' }]}>
+                Already Registered? Login
+              </Text>
+            </Pressable>
+          </View>
+        </View>
       </View>
     </>
   );
@@ -85,17 +94,14 @@ export default function WelcomeScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: '#0F172A', padding: 24, justifyContent: 'space-between' }]}>
+    <View style={[styles.container, { backgroundColor: '#0F172A', padding: 24 }]}>
       {Content}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, justifyContent: 'space-between' },
-  header: { marginTop: 24 },
-  title: { color: '#fff', fontSize: 36, fontWeight: '800', letterSpacing: 0.4 },
-  subtitle: { color: '#A6B0C3', marginTop: 8 },
+  container: { flex: 1, padding: 24 },
   cards: { marginTop: 24, gap: 16 },
   card: {
     backgroundColor: '#fff',
@@ -115,20 +121,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 8,
   },
-  cardTitle: { fontSize: 18, fontWeight: '700', color: '#0B1220' },
-  cardSub: { marginTop: 6, color: '#334155' },
-  footer: { alignItems: 'center', marginBottom: 24 },
-  loginButton: {
-    backgroundColor: '#2563EB',
+  cardTitle: { fontSize: 18, fontWeight: '700', color: '#0B1220',textAlign: 'center',  },
+  cardSub: { marginTop: 6, color: '#334155', marginBottom: 14 },
+  buttonGroup: { gap: 10 },
+  actionButton: {
+    borderRadius: 8,
     paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
     alignItems: 'center',
-    width: '80%',
   },
-  loginText: {
+  actionText: {
     color: '#fff',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 15,
   },
 });

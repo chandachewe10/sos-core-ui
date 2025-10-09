@@ -131,10 +131,10 @@ export default function UserMapScreen() {
   };
 
   const handleCallHelp = async () => {
-    // if (!auth.user || auth.user.role !== 'user') {
-    //   toast.error('Not authenticated');
-    //   return;
-    // }
+    if (!auth.user || auth.user.role !== 'user') {
+      toast.error('Not authenticated');
+      return;
+    }
     
     if (!location?.coords) {
       toast.error('Location not available');
