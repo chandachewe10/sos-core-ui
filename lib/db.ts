@@ -181,6 +181,35 @@ export async function submitStaffSignature(payload: {
 
 
 
+export async function listActiveStaffs() {
+  try {
+   
+    const res = await fetch(`https://sos.macroit.org/api/active-staffs`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || 'Failed to fetch staff');
+    }
+
+    return data.staffs; 
+  } catch (err: any) {
+    console.error('listActiveStaffs error:', err);
+    throw err;
+  }
+}
+
+
+
+
+
+
+
 
 
 export async function updateStaff(id: string, patch: Partial<StaffRecord>) {
