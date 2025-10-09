@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useNavigation } from '@react-navigation/native';
 import { toast } from 'sonner-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
 
 export default function StaffLoginScreen() {
   const [email, setEmail] = useState('');
@@ -35,6 +36,39 @@ export default function StaffLoginScreen() {
       await AsyncStorage.setItem('staffUser', JSON.stringify(data.user));
 
       toast.success('Logged in successfully');
+      // Update users Current Location of user
+
+// ✅ Request location permission
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      toast.error('Permission to access location was denied');
+      return navigation.reset({ index: 0, routes: [{ name: 'StaffDashboard' }] });
+    }
+
+  
+    const location = await Location.getCurrentPositionAsync({});
+    const { latitude, longitude } = location.coords;
+
+
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('latitude', latitude.toString());
+    formData.append('longitude', longitude.toString());
+
+    
+    await fetch('https://sos.macroit.org/api/update-location', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${data.token}`,
+        Accept: 'application/json',
+      },
+      body: formData,
+    });
+
+
+
+
+      //
       navigation.reset({ index: 0, routes: [{ name: 'StaffDashboard' }] });
 
     } catch (err: any) {
