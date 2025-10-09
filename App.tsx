@@ -20,7 +20,11 @@ import StaffLoginScreen from './screens/StaffLoginScreen';
 import StaffDashboardScreen from './screens/StaffDashboardScreen';
 import AdminApproveScreen from './screens/AdminApproveScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
-
+import StaffProfileScreen from './screens/StaffProfileScreen';
+import MyCasesScreen from './screens/MyCasesScreen';
+import IncidentReportScreen from './screens/IncidentReportScreen';
+import SOSAlertsScreen from './screens/SOSAlertsScreen';
+import ResourcesScreen from './screens/ResourcesScreen';
 import { AuthProvider } from './hooks/useAuth';
 import { api } from './lib/api';
 
@@ -75,7 +79,7 @@ export default function App(): JSX.Element {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider style={styles.container}>
         <StatusBar barStyle="light-content" />
-        
+
         <AuthProvider>
           <NavigationContainer>
             <Stack.Navigator
@@ -97,6 +101,14 @@ export default function App(): JSX.Element {
               <Stack.Screen name="StaffLogin" component={StaffLoginScreen} />
               <Stack.Screen name="StaffDashboard" component={StaffDashboardScreen} />
               <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+              <Stack.Screen name="StaffProfile" component={StaffProfileScreen} />
+              <Stack.Screen name="MyCases" component={MyCasesScreen} />
+              <Stack.Screen name="IncidentReports" component={IncidentReportScreen} />
+              <Stack.Screen name="SOSAlerts" component={SOSAlertsScreen} />
+              <Stack.Screen name="Resources" component={ResourcesScreen} />
+              
+
+
 
               {/* Admin */}
               <Stack.Screen name="AdminApprove" component={AdminApproveScreen} />

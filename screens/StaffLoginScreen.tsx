@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigation } from '@react-navigation/native';
 import { toast } from 'sonner-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function StaffLoginScreen() {
   const [email, setEmail] = useState('');
@@ -29,6 +30,10 @@ export default function StaffLoginScreen() {
         return toast.error(data.message || 'Login failed');
       }
 
+      // Store auth data
+      await AsyncStorage.setItem('staffToken', data.token);
+      await AsyncStorage.setItem('staffUser', JSON.stringify(data.user));
+
       toast.success('Logged in successfully');
       navigation.reset({ index: 0, routes: [{ name: 'StaffDashboard' }] });
 
@@ -38,10 +43,9 @@ export default function StaffLoginScreen() {
       setLoading(false);
     }
   }
-  function handleForgotPassword() {
-   
-    navigation.navigate('ForgotPassword');
 
+  function handleForgotPassword() {
+    navigation.navigate('ForgotPassword');
   }
 
   return (
