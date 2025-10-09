@@ -46,7 +46,8 @@ export default function WelcomeScreen() {
           <View style={styles.iconWrap}>
             {UserIcon ? <UserIcon color="#0B1220" width={28} height={28} /> : <Text>U</Text>}
           </View>
-          <Text style={styles.cardTitle}>Register as a User</Text>
+          <Text style={styles.cardTitle}>Sign in as a User</Text>
+
           <Text style={styles.cardSub}>
             Quick phone OTP. Call for help from your location.
           </Text>
@@ -121,7 +122,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 8,
   },
-  cardTitle: { fontSize: 18, fontWeight: '700', color: '#0B1220',textAlign: 'center',  },
+  cardTitle: { fontSize: 18, fontWeight: '700', color: '#0B1220', textAlign: 'center', },
   cardSub: { marginTop: 6, color: '#334155', marginBottom: 14 },
   buttonGroup: { gap: 10 },
   actionButton: {

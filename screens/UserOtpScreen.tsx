@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import * as DB from '../lib/db';
-import { useAuth } from '../hooks/useAuth';
+
 import { toast } from 'sonner-native';
 
 export default function UserOtpScreen() {
@@ -11,7 +11,7 @@ export default function UserOtpScreen() {
   const { phone, token } = route.params || {};
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
-  const auth = useAuth();
+  
 
 async function handleVerify() {
   if (!phone) return toast.error('Missing phone number');

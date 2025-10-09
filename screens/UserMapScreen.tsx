@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ActivityIndicator, Alert, Linking } from 'react-native';
 import * as Location from 'expo-location';
 import MapView, { Marker, Callout } from 'react-native-maps';
-import { useAuth } from '../hooks/useAuth';
 import * as DB from '../lib/db';
 import { toast } from 'sonner-native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 
 export default function UserMapScreen() {
-  const auth = useAuth();
+
+  const route = useRoute<any>();
+  const { phone, token } = route.params || {};
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -43,8 +45,8 @@ export default function UserMapScreen() {
       const { latitude: userLat, longitude: userLon } = userLocation.coords;
 
       // 3. Fetch real staff from backend
-      const staffList = await DB.listActiveStaffs(); // Your backend function
-     
+      const staffList = await DB.listActiveStaffs(token);
+
       // Filter out staff without location and convert to numbers
       const staffWithLocation = staffList
         .filter((s: any) => s.last_known_latitude && s.last_known_longitude)
@@ -54,8 +56,8 @@ export default function UserMapScreen() {
           last_known_longitude: parseFloat(s.last_known_longitude),
         }))
         .filter((s: any) => !isNaN(s.last_known_latitude) && !isNaN(s.last_known_longitude));
-      
-      console.log('staffs: '+staffWithLocation.length)
+
+      console.log('staffs: ' + staffWithLocation.length)
 
       // 4. Calculate distance and sort by closest
       const staffWithDistance = staffWithLocation.map((s: any) => ({
@@ -102,6 +104,73 @@ export default function UserMapScreen() {
     );
   };
 
+  const callForHelp = async () => {
+    if (!location?.coords) {
+      Alert.alert('Error', 'Unable to get your location. Please try again.');
+      return;
+    }
+
+    setSending(true);
+    try {
+
+      const userPhone = phone;
+
+      const helpData = {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        phone: userPhone,
+        timestamp: new Date().toISOString(),
+
+      };
+
+      // Call your Laravel backend API
+      const response = await fetch('https://sos.macroit.org/api/emergency-help', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(helpData),
+      });
+
+      if (response.ok) {
+        toast.success('Help is on the way! Emergency services have been notified.');
+        Alert.alert(
+          'Help Request Sent!',
+          'Your emergency request has been sent. Help is on the way!\n\nNearest staff members have been notified of your location.',
+          [{ text: 'OK', style: 'default' }]
+        );
+      } else {
+        throw new Error('Failed to send help request');
+      }
+    } catch (error: any) {
+      console.error('Error sending help request:', error);
+      toast.error('Failed to send help request. Please try again.');
+      Alert.alert(
+        'Error',
+        'Failed to send emergency request. Please check your connection and try again.',
+        [{ text: 'OK', style: 'cancel' }]
+      );
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const confirmCallForHelp = () => {
+    Alert.alert(
+      'Emergency Help',
+      'Are you sure you want to call for emergency help? This will notify all nearby staff members with your location.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Call for Help',
+          style: 'destructive',
+          onPress: callForHelp
+        }
+      ]
+    );
+  };
+
   if (loading) return (
     <View style={styles.loadingContainer}>
       <ActivityIndicator size="large" color="#EF4444" />
@@ -133,15 +202,11 @@ export default function UserMapScreen() {
         {nearestStaff.map(staff => (
           <Marker
             key={staff.id}
-            coordinate={{ 
-              latitude: staff.last_known_latitude, 
-              longitude: staff.last_known_longitude 
+            coordinate={{
+              latitude: staff.last_known_latitude,
+              longitude: staff.last_known_longitude
             }}
-            // Option 1: Use image prop for custom icon
             image={require('../assets/doctor-icon.png')}
-            
-            // Option 2: Use a simple pin with custom callout
-            //pinColor="red" // You can change the pin color
           >
             <Callout onPress={() => callStaff(staff)}>
               <View style={{ minWidth: 200, padding: 10 }}>
@@ -154,6 +219,21 @@ export default function UserMapScreen() {
           </Marker>
         ))}
       </MapView>
+
+      {/* Big Red Help Button */}
+      <View style={styles.helpButtonContainer}>
+        <Pressable
+          style={[styles.helpButton, sending && styles.helpButtonDisabled]}
+          onPress={confirmCallForHelp}
+          disabled={sending}
+        >
+          {sending ? (
+            <ActivityIndicator color="white" size="small" />
+          ) : (
+            <Text style={styles.helpButtonText}>🚨 CALL FOR HELP</Text>
+          )}
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -166,18 +246,35 @@ const styles = StyleSheet.create({
   errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorText: { color: 'red', fontSize: 16, marginBottom: 10 },
   retryText: { color: 'blue', fontSize: 16 },
-  markerContainer: {
+
+  // Help Button Styles
+  helpButtonContainer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 20,
+    right: 20,
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  markerIcon: {
-    backgroundColor: 'white',
-    padding: 8,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: 'blue',
+  helpButton: {
+    backgroundColor: '#EF4444',
+    paddingVertical: 20,
+    paddingHorizontal: 30,
+    borderRadius: 15,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    minWidth: 200,
+    alignItems: 'center',
   },
-  markerText: {
+  helpButtonDisabled: {
+    backgroundColor: '#9CA3AF',
+  },
+  helpButtonText: {
+    color: 'white',
     fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });

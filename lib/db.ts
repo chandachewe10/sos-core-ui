@@ -181,13 +181,14 @@ export async function submitStaffSignature(payload: {
 
 
 
-export async function listActiveStaffs() {
+export async function listActiveStaffs(token) {
   try {
    
     const res = await fetch(`https://sos.macroit.org/api/active-staffs`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`, 
       },
     });
 
