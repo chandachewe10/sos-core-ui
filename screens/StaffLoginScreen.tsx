@@ -1,24 +1,25 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
-import { useAuth } from '../hooks/useAuth';
 import { useNavigation } from '@react-navigation/native';
 import { toast } from 'sonner-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
+import PusherService from '../services/PusherService';
 
 export default function StaffLoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const auth = useAuth();
   const navigation = useNavigation<any>();
+
+  // ✅ REMOVED THE PROBLEMATIC useEffect THAT WAS DISCONNECTING PUSHER
 
   async function handleLogin() {
     if (!email || !password) return toast.error('Enter email and password');
-
     setLoading(true);
 
     try {
+      // 1. Login
       const res = await fetch('https://sos.macroit.org/api/staff-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -26,55 +27,59 @@ export default function StaffLoginScreen() {
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Login failed');
 
-      if (!res.ok) {
-        return toast.error(data.message || 'Login failed');
-      }
-
-      // Store auth data
+      // 2. Store auth
       await AsyncStorage.setItem('staffToken', data.token);
       await AsyncStorage.setItem('staffUser', JSON.stringify(data.user));
-
       toast.success('Logged in successfully');
-      // Update users Current Location of user
 
-// ✅ Request location permission
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      toast.error('Permission to access location was denied');
-      return navigation.reset({ index: 0, routes: [{ name: 'StaffDashboard' }] });
-    }
+      // 3. Update location
+      await updateStaffLocation(data.token);
 
-  
-    const location = await Location.getCurrentPositionAsync({});
-    const { latitude, longitude } = location.coords;
+      // 4. Initialize Pusher - This will stay connected!
+      if (data.user && data.user.id) {
+        await PusherService.initPusher(data.user.id);
+        console.log('✅ Pusher emergency listener activated');
+      }
 
-
-    const formData = new FormData();
-    formData.append('email', email);
-    formData.append('latitude', latitude.toString());
-    formData.append('longitude', longitude.toString());
-
-    
-    await fetch('https://sos.macroit.org/api/update-location', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${data.token}`,
-        Accept: 'application/json',
-      },
-      body: formData,
-    });
-
-
-
-
-      //
+      // 5. Navigate
       navigation.reset({ index: 0, routes: [{ name: 'StaffDashboard' }] });
 
     } catch (err: any) {
       toast.error(err.message || 'Failed to login');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function updateStaffLocation(token) {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        toast.error('Location permission denied');
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('latitude', latitude.toString());
+      formData.append('longitude', longitude.toString());
+
+      await fetch('https://sos.macroit.org/api/update-location', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+        body: formData,
+      });
+
+    } catch (error) {
+      console.error('Location update error:', error);
     }
   }
 
@@ -85,7 +90,6 @@ export default function StaffLoginScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Staff Login</Text>
-
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -95,7 +99,6 @@ export default function StaffLoginScreen() {
         autoCapitalize="none"
         autoCorrect={false}
       />
-
       <TextInput
         style={styles.input}
         placeholder="Password"
@@ -109,13 +112,14 @@ export default function StaffLoginScreen() {
       <Pressable onPress={handleForgotPassword}>
         <Text style={styles.forgotText}>Forgot password?</Text>
       </Pressable>
-
       <Pressable
         style={[styles.button, loading && { opacity: 0.6 }]}
         onPress={handleLogin}
         disabled={loading}
       >
-        <Text style={styles.buttonText}>Login</Text>
+        <Text style={styles.buttonText}>
+          {loading ? 'Logging in...' : 'Login'}
+        </Text>
       </Pressable>
     </View>
   );

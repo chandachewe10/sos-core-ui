@@ -22,7 +22,7 @@ export default function StaffProfileScreen() {
     await AsyncStorage.removeItem('staffToken');
     await AsyncStorage.removeItem('staffUser');
     auth.logout();
-    navigation.reset({ index: 0, routes: [{ name: 'StaffLogin' }] });
+    navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
   }
 
   return (

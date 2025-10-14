@@ -98,7 +98,15 @@ export default function App(): JSX.Element {
               <Stack.Screen name="StaffTerms" component={StaffTermsScreen} />
               <Stack.Screen name="StaffSignature" component={StaffSignatureScreen} />
               <Stack.Screen name="StaffPending" component={StaffPendingScreen} />
-              <Stack.Screen name="StaffLogin" component={StaffLoginScreen} />
+ <Stack.Screen 
+    name="StaffLogin" 
+    component={StaffLoginScreen}
+    options={{ 
+      headerShown: true,
+      title: 'Home',
+      headerBackTitle: 'Back' // For iOS
+    }}
+  />
               <Stack.Screen name="StaffDashboard" component={StaffDashboardScreen} />
               <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
               <Stack.Screen name="StaffProfile" component={StaffProfileScreen} />

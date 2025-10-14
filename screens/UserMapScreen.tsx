@@ -123,7 +123,7 @@ export default function UserMapScreen() {
 
       };
 
-      // Call your Laravel backend API
+      // Call Laravel backend API
       const response = await fetch('https://sos.macroit.org/api/emergency-help', {
         method: 'POST',
         headers: {
