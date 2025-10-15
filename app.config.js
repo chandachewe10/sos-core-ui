@@ -19,7 +19,7 @@ export default {
     runtimeVersion: "1.0.0",
     assetBundlePatterns: [
       "**/*",
-      "assets/sounds/*"  // 👈 ADD THIS LINE
+      "assets/sounds/*"  
     ],
     ios: {
       supportsTablet: true,
@@ -46,8 +46,23 @@ export default {
         "ACCESS_FINE_LOCATION",
         "FOREGROUND_SERVICE",
         "ACCESS_BACKGROUND_LOCATION",
+        "WAKE_LOCK", 
       ],
+            useNextNotificationsApi: true,
+
     },
+
+
+ ios: {
+      supportsTablet: true,
+      infoPlist: {
+        NSLocationWhenInUseUsageDescription: "We use your location to show your position on the map and help responders find you.",
+        NSLocationAlwaysAndWhenInUseUsageDescription: "We use your location to show your position on the map and help responders find you.",
+        UIBackgroundModes: ["location", "fetch"], 
+      },
+    },
+
+
     web: {
       favicon: "./assets/favicon.png",
     },
@@ -61,7 +76,9 @@ export default {
             "Allow Moyo SOS to use your location to help emergency responders find you.",
           locationWhenInUsePermission:
             "Allow Moyo SOS to use your location to help emergency responders find you.",
+             isAndroidBackgroundLocationEnabled: true,
         }
+        
       ],
 
     ],

@@ -127,6 +127,8 @@ class PusherService {
     }
   }
 
+  
+
   setupAppStateListener() {
     // Clean up old listener
     if (this.appStateSubscription) {

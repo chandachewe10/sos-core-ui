@@ -9,24 +9,44 @@ export default function SOSAlertsScreen() {
   const navigation = useNavigation<any>();
   const [alerts, setAlerts] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'active' | 'urgent'>('all');
+  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
+  const [staffUser, setStaffUser] = useState<any>(null);
 
   useEffect(() => {
     loadAlerts();
   }, [filter]);
 
   async function loadAlerts() {
-    const list = await DB.listSOS();
-    let filtered = list;
-    
-    if (filter === 'active') {
-      filtered = list.filter((s: any) => s.status === 'active');
-    } else if (filter === 'urgent') {
-      filtered = list.filter((s: any) => s.priority === 'urgent' || s.status === 'active');
-    }
-    
-    setAlerts(filtered);
+  // Load staff user data
+  const userData = await AsyncStorage.getItem('staffUser');
+  let staffId;
+  
+  if (userData) {
+    const parsedUser = JSON.parse(userData);
+    setStaffUser(parsedUser);
+    staffId = parsedUser.id;
   }
+
+  const staffToken = await AsyncStorage.getItem('staffToken');
+  if (!staffToken || !staffId) {
+    console.log('Missing token or staff ID');
+    return;
+  }
+  
+  console.log('Staff Token:', staffToken);
+  console.log('Staff ID:', staffId); 
+
+  const list = await DB.listSOS(staffId);
+  let filtered = list;
+  
+  if (filter === 'active') {
+    filtered = list.filter((s: any) => s.status === 'active');
+  } else if (filter === 'completed') {
+    filtered = list.filter((s: any) => s.status === 'completed'); // FIXED: Only completed status
+  }
+  
+  setAlerts(filtered);
+}
 
   async function onRefresh() {
     setRefreshing(true);
@@ -34,25 +54,7 @@ export default function SOSAlertsScreen() {
     setRefreshing(false);
   }
 
-  async function handleAcceptCase(sosId: string) {
-    try {
-      const token = await AsyncStorage.getItem('staffToken');
-      const res = await fetch(`https://sos.macroit.org/api/sos/${sosId}/accept`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) throw new Error('Failed to accept case');
-
-      toast.success('Case accepted successfully');
-      loadAlerts();
-    } catch (err: any) {
-      toast.error(err.message);
-    }
-  }
+  
 
   function getTimeAgo(dateString: string) {
     const date = new Date(dateString);
@@ -86,11 +88,11 @@ export default function SOSAlertsScreen() {
           </Text>
         </Pressable>
         <Pressable 
-          style={[styles.filterBtn, filter === 'urgent' && styles.filterBtnActive]}
-          onPress={() => setFilter('urgent')}
+          style={[styles.filterBtn, filter === 'completed' && styles.filterBtnActive]}
+          onPress={() => setFilter('completed')}
         >
-          <Text style={[styles.filterText, filter === 'urgent' && styles.filterTextActive]}>
-            Urgent
+          <Text style={[styles.filterText, filter === 'completed' && styles.filterTextActive]}>
+            Completed
           </Text>
         </Pressable>
       </View>
@@ -119,6 +121,8 @@ export default function SOSAlertsScreen() {
               )}
             </View>
 
+            
+
             <View style={styles.locationRow}>
               <Text style={styles.locationIcon}>📍</Text>
               <View style={styles.locationInfo}>
@@ -137,23 +141,7 @@ export default function SOSAlertsScreen() {
               </Text>
             )}
 
-            <View style={styles.actionRow}>
-              <Pressable 
-                style={styles.viewBtn}
-                onPress={() => navigation.navigate('SOSDetail', { sosId: item.id })}
-              >
-                <Text style={styles.viewBtnText}>View Details</Text>
-              </Pressable>
-              
-              {item.status === 'active' && (
-                <Pressable 
-                  style={styles.acceptBtn}
-                  onPress={() => handleAcceptCase(item.id)}
-                >
-                  <Text style={styles.acceptBtnText}>Accept Case</Text>
-                </Pressable>
-              )}
-            </View>
+
           </Pressable>
         )}
         ListEmptyComponent={
@@ -162,7 +150,7 @@ export default function SOSAlertsScreen() {
             <Text style={styles.emptyText}>No SOS alerts found</Text>
             <Text style={styles.emptySubtext}>
               {filter === 'active' ? 'No active alerts at the moment' : 
-               filter === 'urgent' ? 'No urgent alerts' : 
+               filter === 'completed' ? 'No Completed alerts' : 
                'Pull down to refresh'}
             </Text>
           </View>

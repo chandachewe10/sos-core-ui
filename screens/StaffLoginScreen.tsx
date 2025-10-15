@@ -5,6 +5,7 @@ import { toast } from 'sonner-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import PusherService from '../services/PusherService';
+import LocationService from '../services/LocationService';
 
 export default function StaffLoginScreen() {
   const [email, setEmail] = useState('');
@@ -34,10 +35,11 @@ export default function StaffLoginScreen() {
       await AsyncStorage.setItem('staffUser', JSON.stringify(data.user));
       toast.success('Logged in successfully');
 
-      // 3. Update location
-      await updateStaffLocation(data.token);
+      // 3. Start real-time location updates (INDEPENDENT SERVICE)
+      await LocationService.startLocationUpdates();
+      console.log('📍 Real-time location updates started');
 
-      // 4. Initialize Pusher - This will stay connected!
+      // 4. Initialize Pusher for emergency alerts (SEPARATE SERVICE)
       if (data.user && data.user.id) {
         await PusherService.initPusher(data.user.id);
         console.log('✅ Pusher emergency listener activated');
@@ -52,7 +54,6 @@ export default function StaffLoginScreen() {
       setLoading(false);
     }
   }
-
   async function updateStaffLocation(token) {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();

@@ -248,9 +248,32 @@ export async function createSOS(sos: Omit<SOSRecord, 'id'>) {
   return id;
 }
 
-export async function listSOS() {
-  const db = await load();
-  return Object.values(db.soses).sort((a, b) => b.createdAt - a.createdAt);
+export async function listSOS(staffId) {
+  try {
+  const staffToken = await AsyncStorage.getItem('staffToken'); 
+    const response = await fetch(`https://sos.macroit.org/api/emergency_statuses/${staffId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${staffToken}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch SOS records');
+    }
+
+    
+    const sosList = data.emergencies || data.data || data;
+    console.log('listSOS :', sosList);
+    return sosList;
+  } catch (error) {
+    console.error('listSOS error:', error);
+    throw error;
+  }
 }
 
 export async function clearDB() {
