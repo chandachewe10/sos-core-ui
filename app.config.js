@@ -16,8 +16,11 @@ export default {
       fallbackToCacheTimeout: 0,
       url: "https://u.expo.dev/30d99b7d-3659-4024-934c-a536b5357da6"
     },
-    runtimeVersion: "1.0.0", // <-- static version for bare workflow
-    assetBundlePatterns: ["**/*"],
+    runtimeVersion: "1.0.0",
+    assetBundlePatterns: [
+      "**/*",
+      "assets/sounds/*"  // 👈 ADD THIS LINE
+    ],
     ios: {
       supportsTablet: true,
       infoPlist: {
@@ -59,7 +62,8 @@ export default {
           locationWhenInUsePermission:
             "Allow Moyo SOS to use your location to help emergency responders find you.",
         }
-      ]
+      ],
+
     ],
     extra: {
       eas: {

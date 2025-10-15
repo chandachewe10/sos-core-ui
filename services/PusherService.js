@@ -2,15 +2,18 @@ import Pusher from 'pusher-js';
 import { Alert, Linking, AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
+import { Audio } from 'expo-av'; // Add this import
 
 class PusherService {
   constructor() {
     this.pusher = null;
     this.channel = null;
     this.vibrationInterval = null;
+    this.soundInterval = null; // Add sound interval
     this.staffId = null;
     this.isInitialized = false;
     this.appStateSubscription = null;
+    this.emergencySound = null; // Add sound reference
   }
 
   async initPusher(staffId) {
@@ -149,8 +152,8 @@ class PusherService {
     console.log('⏰ Alert received at:', new Date().toLocaleTimeString());
     
     try {
-      // Start continuous SOS haptic feedback
-      this.startSOSVibration();
+      // Start continuous SOS haptic feedback AND sound
+      this.startSOSAlert();
 
       Alert.alert(
         '🚨 EMERGENCY ALERT 🚨',
@@ -161,7 +164,7 @@ class PusherService {
           {
             text: 'Navigate to Location',
             onPress: () => {
-              this.stopVibration();
+              this.stopAllAlerts();
               const url = `https://maps.google.com/?q=${emergencyData.latitude},${emergencyData.longitude}`;
               Linking.openURL(url);
             }
@@ -169,65 +172,89 @@ class PusherService {
           {
             text: 'Call Victim',
             onPress: () => {
-              this.stopVibration();
+              this.stopAllAlerts();
               Linking.openURL(`tel:${emergencyData.victim_phone}`);
             }
           },
           {
             text: 'Stop Alarm',
-            onPress: () => this.stopVibration(),
+            onPress: () => this.stopAllAlerts(),
             style: 'cancel'
           }
         ],
         { 
           cancelable: false,
-          onDismiss: () => this.stopVibration()
+          onDismiss: () => this.stopAllAlerts()
         }
       );
 
       // Auto-stop after 2 minutes
-      setTimeout(() => this.stopVibration(), 120000);
+      setTimeout(() => this.stopAllAlerts(), 120000);
 
     } catch (error) {
       console.error('❌ Error handling emergency alert:', error);
     }
   }
 
-  async startSOSVibration() {
-    console.log('📳 Starting SOS vibration pattern...');
+  async startSOSAlert() {
+    console.log('📳 Starting SOS vibration and sound pattern...');
     
-    // Clear any existing vibration
-    this.stopVibration();
+    // Clear any existing alerts
+    this.stopAllAlerts();
+
+    // Configure audio mode for alerts
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      staysActiveInBackground: true,
+      playsInSilentModeIOS: true,
+      shouldDuckAndroid: true,
+      playThroughEarpieceAndroid: false,
+    });
 
     // Function to play SOS pattern: ... --- ...
     const playSOSPattern = async () => {
       try {
-        // S (short) - 3 short vibrations
+        // S (short) - 3 short vibrations + sound
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        await this.playAlertSound();
         await this.sleep(100);
+        
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        await this.playAlertSound();
         await this.sleep(100);
+        
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        await this.playAlertSound();
         await this.sleep(300);
 
-        // O (long) - 3 long vibrations
+        // O (long) - 3 long vibrations + longer sound
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        await this.playEmergencySound();
         await this.sleep(100);
+        
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        await this.playEmergencySound();
         await this.sleep(100);
+        
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        await this.playEmergencySound();
         await this.sleep(300);
 
-        // S (short) - 3 short vibrations
+        // S (short) - 3 short vibrations + sound
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        await this.playAlertSound();
         await this.sleep(100);
+        
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        await this.playAlertSound();
         await this.sleep(100);
+        
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        await this.playAlertSound();
         
         console.log('✅ SOS pattern completed');
       } catch (error) {
-        console.error('❌ Vibration error:', error);
+        console.error('❌ Alert pattern error:', error);
       }
     };
 
@@ -240,11 +267,90 @@ class PusherService {
     }, 3000);
   }
 
-  stopVibration() {
-    console.log('🛑 Stopping vibration...');
+  async playAlertSound() {
+    try {
+      // Unload previous sound if exists
+      if (this.emergencySound) {
+        await this.emergencySound.unloadAsync();
+      }
+
+      // Play short alert sound
+      const { sound } = await Audio.Sound.createAsync(
+        require('../assets/sounds/alert.mp3'), 
+        { shouldPlay: true, volume: 0.8 }
+      );
+      
+      this.emergencySound = sound;
+      
+      // Auto-unload after playing
+      setTimeout(async () => {
+        if (this.emergencySound) {
+          await this.emergencySound.unloadAsync();
+          this.emergencySound = null;
+        }
+      }, 1000);
+      
+    } catch (error) {
+      console.log('❌ Alert sound error:', error);
+    }
+  }
+
+  async playEmergencySound() {
+    try {
+      // Unload previous sound if exists
+      if (this.emergencySound) {
+        await this.emergencySound.unloadAsync();
+      }
+
+      // Play longer emergency sound
+      const { sound } = await Audio.Sound.createAsync(
+        require('../assets/sounds/emergency-alarm.mp3'), // Add this file
+        { shouldPlay: true, volume: 1.0 }
+      );
+      
+      this.emergencySound = sound;
+      
+      // Auto-unload after playing
+      setTimeout(async () => {
+        if (this.emergencySound) {
+          await this.emergencySound.unloadAsync();
+          this.emergencySound = null;
+        }
+      }, 1500);
+      
+    } catch (error) {
+      console.log('❌ Emergency sound error:', error);
+    }
+  }
+
+  stopAllAlerts() {
+    console.log('🛑 Stopping all alerts (vibration + sound)...');
+    
+    // Stop vibration
     if (this.vibrationInterval) {
       clearInterval(this.vibrationInterval);
       this.vibrationInterval = null;
+    }
+    
+    // Stop sound
+    if (this.soundInterval) {
+      clearInterval(this.soundInterval);
+      this.soundInterval = null;
+    }
+    
+    // Unload sound
+    this.unloadSound();
+  }
+
+  async unloadSound() {
+    try {
+      if (this.emergencySound) {
+        await this.emergencySound.stopAsync();
+        await this.emergencySound.unloadAsync();
+        this.emergencySound = null;
+      }
+    } catch (error) {
+      console.log('❌ Sound unload error:', error);
     }
   }
 
@@ -263,7 +369,7 @@ class PusherService {
   disconnect() {
     console.log('🛑 Disconnect requested - cleaning up...');
     
-    this.stopVibration();
+    this.stopAllAlerts();
     this.isInitialized = false;
     this.staffId = null;
     
