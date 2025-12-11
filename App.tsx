@@ -5,12 +5,15 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Toaster } from 'sonner-native';
-import * as Updates from 'expo-updates';  // 👈 Added this
+import * as Updates from 'expo-updates';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { pusherService } from './services/PusherService';
 
 // Screens
 import WelcomeScreen from './screens/WelcomeScreen';
 import UserPhoneScreen from './screens/UserPhoneScreen';
 import UserOtpScreen from './screens/UserOtpScreen';
+import TrackingPreferencesScreen from './screens/TrackingPreferencesScreen';
 import UserMapScreen from './screens/UserMapScreen';
 import StaffRegisterScreen from './screens/StaffRegisterScreen';
 import StaffTermsScreen from './screens/StaffTermsScreen';
@@ -43,7 +46,10 @@ export default function App(): JSX.Element {
         api.setBaseUrl(API_BASE_URL);
         await api.loadTokenFromStorage();
 
-        // 2. Check for OTA updates 🚀
+        // 2. Initialize Pusher for staff if credentials exist (works even without login)
+        await initializePusherForStaff();
+
+        // 3. Check for OTA updates 🚀
         const update = await Updates.checkForUpdateAsync();
         if (update.isAvailable) {
           await Updates.fetchUpdateAsync();
@@ -57,7 +63,39 @@ export default function App(): JSX.Element {
     }
 
     prepareApp();
+
+    // Cleanup on unmount
+    return () => {
+      pusherService.disconnect();
+    };
   }, []);
+
+  // Function to initialize Pusher if staff data exists
+  async function initializePusherForStaff() {
+    try {
+      // Check if staff token and user data exist
+      const staffToken = await AsyncStorage.getItem('staffToken');
+      const staffUserData = await AsyncStorage.getItem('staffUser');
+
+      if (staffToken && staffUserData) {
+        const staffUser = JSON.parse(staffUserData);
+        const staffId = staffUser.id || staffUser.staff_id || staffUser.user_id;
+
+        if (staffId) {
+          console.log('🔌 Auto-initializing Pusher for staff user ID:', staffId);
+          console.log('📱 Staff is logged in - Siren will work in background');
+          // Use user.id (not staff.id) - this is the User model ID that Laravel uses
+          await pusherService.initPusher(staffId.toString());
+        } else {
+          console.warn('⚠️ Staff User ID not found in staff user data');
+        }
+      } else {
+        console.log('ℹ️ No staff credentials found - Pusher not initialized');
+      }
+    } catch (error: any) {
+      console.error('❌ Error auto-initializing Pusher:', error);
+    }
+  }
 
   if (initializing) {
     return (
@@ -91,6 +129,7 @@ export default function App(): JSX.Element {
               {/* User flow */}
               <Stack.Screen name="UserPhone" component={UserPhoneScreen} />
               <Stack.Screen name="UserOtp" component={UserOtpScreen} />
+              <Stack.Screen name="TrackingPreferences" component={TrackingPreferencesScreen} />
               <Stack.Screen name="UserMap" component={UserMapScreen} />
 
               {/* Staff flow */}

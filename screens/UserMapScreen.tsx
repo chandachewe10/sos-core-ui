@@ -1,23 +1,113 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, ActivityIndicator, Alert, Linking } from 'react-native';
 import * as Location from 'expo-location';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import * as DB from '../lib/db';
 import { toast } from 'sonner-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import SafetyCheckModal from '../components/SafetyCheckModal';
+
+interface TrackingPreferences {
+  trackingEnabled: boolean;
+  checkInIntervalMinutes: number | null;
+}
 
 export default function UserMapScreen() {
 
   const route = useRoute<any>();
+  const navigation = useNavigation<any>();
   const { phone, token } = route.params || {};
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [nearestStaff, setNearestStaff] = useState<any[]>([]);
   const [hasLocationError, setHasLocationError] = useState(false);
+  const [trackingPreferences, setTrackingPreferences] = useState<TrackingPreferences | null>(null);
+  const [safetyModalVisible, setSafetyModalVisible] = useState(false);
+  const checkInTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const emergencyTriggeredRef = useRef(false);
 
   useEffect(() => {
+    loadTrackingPreferences();
     requestLocationAndLoadStaff();
+  }, []);
+
+  // Load tracking preferences from AsyncStorage
+  const loadTrackingPreferences = async () => {
+    try {
+      const prefsString = await AsyncStorage.getItem(`tracking_preferences_${phone}`);
+      if (prefsString) {
+        const prefs: TrackingPreferences = JSON.parse(prefsString);
+        setTrackingPreferences(prefs);
+        
+        // Start check-in timer if tracking is enabled
+        if (prefs.trackingEnabled && prefs.checkInIntervalMinutes) {
+          startCheckInTimer(prefs.checkInIntervalMinutes);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading tracking preferences:', error);
+    }
+  };
+
+  // Start the periodic check-in timer
+  const startCheckInTimer = (intervalMinutes: number) => {
+    // Clear any existing timer
+    if (checkInTimerRef.current) {
+      clearTimeout(checkInTimerRef.current);
+    }
+
+    const intervalMs = intervalMinutes * 60 * 1000; // Convert minutes to milliseconds
+    
+    checkInTimerRef.current = setTimeout(() => {
+      setSafetyModalVisible(true);
+      // Timer will be restarted after user responds to the modal
+    }, intervalMs);
+  };
+
+  // Handle thumbs up - user is okay, restart the timer
+  const handleThumbsUp = () => {
+    emergencyTriggeredRef.current = false;
+    if (trackingPreferences?.trackingEnabled && trackingPreferences?.checkInIntervalMinutes) {
+      startCheckInTimer(trackingPreferences.checkInIntervalMinutes);
+    }
+    toast.success('Stay safe!');
+  };
+
+  // Handle thumbs down - emergency help is already sent by the modal
+  const handleThumbsDown = () => {
+    emergencyTriggeredRef.current = true;
+    if (trackingPreferences?.trackingEnabled && trackingPreferences?.checkInIntervalMinutes) {
+      // Restart timer after emergency (in case they want to continue tracking)
+      setTimeout(() => {
+        startCheckInTimer(trackingPreferences.checkInIntervalMinutes!);
+        emergencyTriggeredRef.current = false;
+      }, 60000); // Wait 1 minute before restarting
+    }
+  };
+
+  // Handle modal close - restart timer only if emergency wasn't triggered
+  const handleModalClose = () => {
+    setSafetyModalVisible(false);
+    // Only restart timer if emergency wasn't triggered (emergency handler already restarts it)
+    if (!emergencyTriggeredRef.current && trackingPreferences?.trackingEnabled && trackingPreferences?.checkInIntervalMinutes) {
+      startCheckInTimer(trackingPreferences.checkInIntervalMinutes);
+    }
+  };
+
+  // Handle enable tracking button
+  const handleEnableTracking = async () => {
+    navigation.navigate('TrackingPreferences', { phone, token });
+  };
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (checkInTimerRef.current) {
+        clearTimeout(checkInTimerRef.current);
+      }
+    };
   }, []);
 
   const requestLocationAndLoadStaff = async () => {
@@ -137,7 +227,7 @@ export default function UserMapScreen() {
         toast.success('Help is on the way! Emergency services have been notified.');
         Alert.alert(
           'Help Request Sent!',
-          'Your emergency request has been sent. Help is on the way!\n\nNearest staff members have been notified of your location.',
+          'Your emergency request has been sent. Help is on the way!\n\nNearest practitioner members have been notified of your location.',
           [{ text: 'OK', style: 'default' }]
         );
       } else {
@@ -174,7 +264,7 @@ export default function UserMapScreen() {
   if (loading) return (
     <View style={styles.loadingContainer}>
       <ActivityIndicator size="large" color="#EF4444" />
-      <Text style={styles.loadingText}>Loading location and staff...</Text>
+      <Text style={styles.loadingText}>Loading location and nearby practitioners...</Text>
     </View>
   );
 
@@ -220,6 +310,17 @@ export default function UserMapScreen() {
         ))}
       </MapView>
 
+      {/* Track ME Button - Top Left Circular Button */}
+      {trackingPreferences && !trackingPreferences.trackingEnabled && (
+        <Pressable
+          style={styles.trackMeButton}
+          onPress={handleEnableTracking}
+        >
+          <Text style={styles.trackMeIcon}>📍</Text>
+          <Text style={styles.trackMeText}>TRACK ME</Text>
+        </Pressable>
+      )}
+
       {/* Big Red Help Button */}
       <View style={styles.helpButtonContainer}>
         <Pressable
@@ -234,6 +335,16 @@ export default function UserMapScreen() {
           )}
         </Pressable>
       </View>
+
+      {/* Safety Check Modal */}
+      <SafetyCheckModal
+        visible={safetyModalVisible}
+        onClose={handleModalClose}
+        onThumbsUp={handleThumbsUp}
+        onThumbsDown={handleThumbsDown}
+        phone={phone}
+        token={token}
+      />
     </View>
   );
 }
@@ -274,6 +385,34 @@ const styles = StyleSheet.create({
   helpButtonText: {
     color: 'white',
     fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  // Track ME Button - Circular, Top Left
+  trackMeButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    minWidth: 80,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  trackMeIcon: {
+    fontSize: 20,
+    marginBottom: 2,
+  },
+  trackMeText: {
+    color: 'white',
+    fontSize: 10,
     fontWeight: 'bold',
     textAlign: 'center',
   },

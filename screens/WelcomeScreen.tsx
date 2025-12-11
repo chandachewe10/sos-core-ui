@@ -24,8 +24,14 @@ export default function WelcomeScreen() {
 
   const UserIcon =
     Icons && (typeof Icons.User === 'function' ? Icons.User : Icons.User ?? null);
+  // Try different First Aid icon names from lucide-react-native
   const FirstAidIcon =
-    Icons && (typeof Icons.FirstAidKit === 'function' ? Icons.FirstAidKit : Icons.FirstAidKit ?? null);
+    Icons && (
+      (typeof Icons.HeartPulse === 'function' ? Icons.HeartPulse : null) ||
+      (typeof Icons.Stethoscope === 'function' ? Icons.Stethoscope : null) ||
+      (typeof Icons.Cross === 'function' ? Icons.Cross : null) ||
+      (typeof Icons.FirstAid === 'function' ? Icons.FirstAid : null)
+    );
 
   const Content = (
     <>
@@ -43,8 +49,10 @@ export default function WelcomeScreen() {
       <View style={styles.cards}>
         {/* User Card */}
         <Pressable style={styles.card} onPress={() => navigation.navigate('UserPhone')}>
-          <View style={styles.iconWrap}>
-            {UserIcon ? <UserIcon color="#0B1220" width={28} height={28} /> : <Text>U</Text>}
+          <View style={styles.iconContainer}>
+            <View style={styles.iconWrap}>
+              {UserIcon ? <UserIcon color="#0B1220" width={28} height={28} /> : <Text>U</Text>}
+            </View>
           </View>
           <Text style={styles.cardTitle}>Sign in as a User</Text>
 
@@ -55,11 +63,17 @@ export default function WelcomeScreen() {
 
         {/* Combined Staff Card */}
         <View style={styles.card}>
-          <View style={[styles.iconWrap, { backgroundColor: '#FFE8D6' }]}>
-            {FirstAidIcon ? <FirstAidIcon color="#0B1220" width={28} height={28} /> : <Text>F</Text>}
+          <View style={styles.iconContainer}>
+            <View style={[styles.iconWrap, { backgroundColor: '#FFE8D6' }]}>
+              {FirstAidIcon ? (
+                <FirstAidIcon color="#0B1220" width={28} height={28} />
+              ) : (
+                <Text style={styles.iconFallback}>🏥</Text>
+              )}
+            </View>
           </View>
 
-          <Text style={styles.cardTitle}>Medical Staff Access</Text>
+          <Text style={styles.cardTitle}>Medical Practitioner Access</Text>
           <Text style={styles.cardSub}>
             Submit credentials, sign terms, and get approved to assist victims.
           </Text>
@@ -69,7 +83,7 @@ export default function WelcomeScreen() {
               style={[styles.actionButton, { backgroundColor: '#0B1220' }]}
               onPress={() => navigation.navigate('StaffRegister')}
             >
-              <Text style={styles.actionText}>Register as Staff</Text>
+              <Text style={styles.actionText}>Register as Practitioner</Text>
             </Pressable>
 
             <Pressable
@@ -113,6 +127,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowRadius: 14,
   },
+  iconContainer: {
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   iconWrap: {
     width: 48,
     height: 48,
@@ -120,10 +138,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#E6F0FF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+  },
+  iconFallback: {
+    fontSize: 28,
   },
   cardTitle: { fontSize: 18, fontWeight: '700', color: '#0B1220', textAlign: 'center', },
-  cardSub: { marginTop: 6, color: '#334155', marginBottom: 14 },
+  cardSub: { marginTop: 6, color: '#334155', marginBottom: 14, textAlign: 'center' },
   buttonGroup: { gap: 10 },
   actionButton: {
     borderRadius: 8,

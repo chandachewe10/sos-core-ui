@@ -56,7 +56,7 @@ export default function UserPhoneScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Enter your phone number</Text>
+      <Text style={styles.title}>Enter your phone number to recieve quick OTP</Text>
       <TextInput
         style={styles.input}
         placeholder="e.g. +260977676767"
@@ -65,7 +65,7 @@ export default function UserPhoneScreen() {
         keyboardType="phone-pad"
       />
       <Pressable style={[styles.button, loading && { opacity: 0.6 }]} onPress={handleSendOtp} disabled={loading}>
-        <Text style={styles.buttonText}>Send OTP</Text>
+        <Text style={styles.buttonText}>Click here to receive OTP</Text>
       </Pressable>
     </View>
   );

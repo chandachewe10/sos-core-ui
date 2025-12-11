@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { pusherService } from '../services/PusherService';
 
 export default function StaffProfileScreen() {
   const navigation = useNavigation<any>();
@@ -19,6 +20,9 @@ export default function StaffProfileScreen() {
   }
 
   async function handleLogout() {
+    // Disconnect Pusher when logging out
+    pusherService.disconnect();
+    
     await AsyncStorage.removeItem('staffToken');
     await AsyncStorage.removeItem('staffUser');
     auth.logout();

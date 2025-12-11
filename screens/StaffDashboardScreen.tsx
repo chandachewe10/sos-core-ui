@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
 import * as DB from '../lib/db';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { pusherService } from '../services/PusherService';
 
 export default function StaffDashboardScreen() {
   const auth = useAuth();
@@ -18,7 +19,37 @@ export default function StaffDashboardScreen() {
 
   useEffect(() => {
     loadData();
+    initializePusher();
+
+    // Note: Don't disconnect on unmount since we want Pusher to work in background
+    // Pusher will be cleaned up when app unmounts (handled in App.tsx)
   }, []);
+
+  async function initializePusher() {
+    try {
+      // Check if Pusher is already connected (initialized at app level)
+      if (pusherService.isConnected()) {
+        console.log('✅ Pusher already connected - no need to reinitialize');
+        return;
+      }
+
+      // Load staff user data to get staff ID
+      const userData = await AsyncStorage.getItem('staffUser');
+      if (userData) {
+        const staff = JSON.parse(userData);
+        const staffId = staff.id || staff.staff_id || staff.user_id;
+        
+        if (staffId) {
+          console.log('🔌 Initializing Pusher for staff ID:', staffId);
+          await pusherService.initPusher(staffId.toString());
+        } else {
+          console.warn('⚠️ Staff ID not found in staff user data');
+        }
+      }
+    } catch (error: any) {
+      console.error('❌ Error initializing Pusher:', error);
+    }
+  }
 
   async function loadData() {
     const list = await DB.listSOS();

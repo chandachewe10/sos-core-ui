@@ -36,6 +36,17 @@ export default function StaffLoginScreen() {
       await AsyncStorage.setItem('staffUser', JSON.stringify(data.user));
 
       toast.success('Logged in successfully');
+
+      // Initialize Pusher immediately after login so siren works
+      // Use data.user.id (User model ID) - this matches Laravel's staffUserId
+      const { pusherService } = await import('../services/PusherService');
+      const staffUserId = data.user?.id; // This is the User model ID
+      if (staffUserId) {
+        console.log('🔌 Initializing Pusher after login for staff user ID:', staffUserId);
+        await pusherService.initPusher(staffUserId.toString());
+      } else {
+        console.warn('⚠️ User ID not found in login response');
+      }
       // Update users Current Location of user
 
 // ✅ Request location permission
@@ -84,7 +95,7 @@ export default function StaffLoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Staff Login</Text>
+      <Text style={styles.title}>Practitioner's Login</Text>
 
       <TextInput
         style={styles.input}
@@ -115,7 +126,7 @@ export default function StaffLoginScreen() {
         onPress={handleLogin}
         disabled={loading}
       >
-        <Text style={styles.buttonText}>Login</Text>
+        <Text style={styles.buttonText}>Practitioner's Login</Text>
       </Pressable>
     </View>
   );
