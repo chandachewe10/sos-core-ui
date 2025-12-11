@@ -3,7 +3,12 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+<<<<<<< HEAD
 import { pusherService } from '../services/PusherService';
+=======
+import LocationService from '../services/LocationService';
+
+>>>>>>> 59de0a31ac9e00b93aea5664d3b26adce6fc0873
 
 export default function StaffProfileScreen() {
   const navigation = useNavigation<any>();
@@ -20,13 +25,17 @@ export default function StaffProfileScreen() {
   }
 
   async function handleLogout() {
+<<<<<<< HEAD
     // Disconnect Pusher when logging out
     pusherService.disconnect();
     
+=======
+    LocationService.stopLocationUpdates();
+>>>>>>> 59de0a31ac9e00b93aea5664d3b26adce6fc0873
     await AsyncStorage.removeItem('staffToken');
     await AsyncStorage.removeItem('staffUser');
     auth.logout();
-    navigation.reset({ index: 0, routes: [{ name: 'StaffLogin' }] });
+    navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
   }
 
   return (
@@ -64,7 +73,7 @@ export default function StaffProfileScreen() {
         </View>
       </View>
 
-      <View style={styles.profileSection}>
+      {/* <View style={styles.profileSection}>
         <Text style={styles.profileSectionTitle}>Settings</Text>
         
         <Pressable style={styles.settingItem}>
@@ -81,7 +90,7 @@ export default function StaffProfileScreen() {
           <Text style={styles.settingText}>Notification Settings</Text>
           <Text style={styles.settingArrow}>›</Text>
         </Pressable>
-      </View>
+      </View> */}
 
       <Pressable 
         style={styles.logoutButton}

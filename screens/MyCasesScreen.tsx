@@ -1,20 +1,40 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DB from '../lib/db';
 
 export default function MyCasesScreen() {
-  const [activeTab, setActiveTab] = useState<'accepted' | 'in-progress' | 'completed'>('accepted');
+  const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
   const [cases, setCases] = useState<any[]>([]);
+  const [staffUser, setStaffUser] = useState<any>(null);
 
   useEffect(() => {
     loadCases();
   }, [activeTab]);
 
   async function loadCases() {
-    const allCases = await DB.listSOS();
+    // Load staff user data
+    const userData = await AsyncStorage.getItem('staffUser');
+    let staffId;
+    
+    if (userData) {
+      const parsedUser = JSON.parse(userData);
+      setStaffUser(parsedUser);
+      staffId = parsedUser.id;
+    }
+
+    const staffToken = await AsyncStorage.getItem('staffToken');
+    if (!staffToken || !staffId) {
+      console.log('Missing token or staff ID');
+      return;
+    }
+    
+    console.log('Staff Token:', staffToken);
+    console.log('Staff ID:', staffId); 
+    
+    const allCases = await DB.listSOS(staffId);
     const filtered = allCases.filter((c: any) => {
-      if (activeTab === 'accepted') return c.status === 'accepted';
-      if (activeTab === 'in-progress') return c.status === 'in-progress';
+      if (activeTab === 'active') return c.status === 'active';
       return c.status === 'completed';
     });
     setCases(filtered);
@@ -24,19 +44,11 @@ export default function MyCasesScreen() {
     <View style={styles.container}>
       <View style={styles.tabContainer}>
         <Pressable 
-          style={[styles.tab, activeTab === 'accepted' && styles.activeTab]}
-          onPress={() => setActiveTab('accepted')}
+          style={[styles.tab, activeTab === 'active' && styles.activeTab]}
+          onPress={() => setActiveTab('active')}
         >
-          <Text style={[styles.tabText, activeTab === 'accepted' && styles.activeTabText]}>
-            Accepted
-          </Text>
-        </Pressable>
-        <Pressable 
-          style={[styles.tab, activeTab === 'in-progress' && styles.activeTab]}
-          onPress={() => setActiveTab('in-progress')}
-        >
-          <Text style={[styles.tabText, activeTab === 'in-progress' && styles.activeTabText]}>
-            In Progress
+          <Text style={[styles.tabText, activeTab === 'active' && styles.activeTabText]}>
+            Active
           </Text>
         </Pressable>
         <Pressable 
@@ -58,10 +70,7 @@ export default function MyCasesScreen() {
               <Text style={styles.caseId}>Case #{item.id}</Text>
               <View style={[
                 styles.caseBadge,
-                { backgroundColor: 
-                  activeTab === 'completed' ? '#10B981' : 
-                  activeTab === 'in-progress' ? '#F59E0B' : '#3B82F6'
-                }
+                { backgroundColor: activeTab === 'completed' ? '#10B981' : '#3B82F6' }
               ]}>
                 <Text style={styles.caseBadgeText}>{activeTab}</Text>
               </View>
@@ -74,13 +83,7 @@ export default function MyCasesScreen() {
               🕒 {new Date(item.createdAt).toLocaleString()}
             </Text>
             
-            {activeTab !== 'completed' && (
-              <Pressable style={styles.actionButton}>
-                <Text style={styles.actionButtonText}>
-                  {activeTab === 'accepted' ? 'Start Response' : 'Update Status'}
-                </Text>
-              </Pressable>
-            )}
+
           </View>
         )}
         ListEmptyComponent={

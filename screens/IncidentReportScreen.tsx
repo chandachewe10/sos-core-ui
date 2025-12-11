@@ -9,11 +9,29 @@ export default function IncidentReportScreen() {
   const [severity, setSeverity] = useState('medium');
   const [outcome, setOutcome] = useState('');
   const [loading, setLoading] = useState(false);
+   const [staffUser, setStaffUser] = useState<any>(null);
 
   async function handleSubmit() {
     if (!caseId || !description) {
       return toast.error('Please fill required fields');
     }
+    const userData = await AsyncStorage.getItem('staffUser');
+    let staffId;
+    
+    if (userData) {
+      const parsedUser = JSON.parse(userData);
+      setStaffUser(parsedUser);
+      staffId = parsedUser.id;
+    }
+
+    const staffToken = await AsyncStorage.getItem('staffToken');
+    if (!staffToken || !staffId) {
+      console.log('Missing token or staff ID');
+      return;
+    }
+    
+    console.log('Staff Token:', staffToken);
+    console.log('Staff ID:', staffId); 
 
     setLoading(true);
     try {
@@ -25,6 +43,7 @@ export default function IncidentReportScreen() {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
+          staff_id: staffId,
           case_id: caseId,
           description,
           severity,
@@ -32,7 +51,7 @@ export default function IncidentReportScreen() {
         }),
       });
 
-      if (!res.ok) throw new Error('Failed to submit report');
+      if (!res.ok) throw new Error('Failed to submit report '+res.status);
 
       toast.success('Report submitted successfully');
       setCaseId('');

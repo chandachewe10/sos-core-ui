@@ -4,7 +4,11 @@ import * as DB from '../lib/db';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+<<<<<<< HEAD
 import { pusherService } from '../services/PusherService';
+=======
+import LocationService from '../services/LocationService';
+>>>>>>> 59de0a31ac9e00b93aea5664d3b26adce6fc0873
 
 export default function StaffDashboardScreen() {
   const auth = useAuth();
@@ -16,8 +20,11 @@ export default function StaffDashboardScreen() {
     completed: 0,
   });
   const [staffUser, setStaffUser] = useState<any>(null);
+ 
+ 
 
   useEffect(() => {
+    console.log('📍 Location service status:', LocationService.getStatus());
     loadData();
     initializePusher();
 
@@ -52,7 +59,27 @@ export default function StaffDashboardScreen() {
   }
 
   async function loadData() {
-    const list = await DB.listSOS();
+  // Load staff user data
+  const userData = await AsyncStorage.getItem('staffUser');
+  let staffId;
+  
+  if (userData) {
+    const parsedUser = JSON.parse(userData);
+    setStaffUser(parsedUser);
+    staffId = parsedUser.id; // Use the local variable instead of state
+  }
+
+  const staffToken = await AsyncStorage.getItem('staffToken');
+  if (!staffToken || !staffId) {
+    console.log('Missing token or staff ID');
+    return;
+  }
+  
+  console.log('Staff Token:', staffToken);
+  console.log('Staff ID:', staffId); // Now this will log the actual ID
+  
+  try {
+    const list = await DB.listSOS(staffId);
     setSoses(list.filter((s: any) => s.status === 'active'));
     
     // Calculate stats
@@ -61,12 +88,10 @@ export default function StaffDashboardScreen() {
       inProgress: list.filter((s: any) => s.status === 'in-progress').length,
       completed: list.filter((s: any) => s.status === 'completed').length,
     });
-
-    // Load staff user data
-    const userData = await AsyncStorage.getItem('staffUser');
-    if (userData) setStaffUser(JSON.parse(userData));
+  } catch (error) {
+    console.error('Error loading SOS data:', error);
   }
-
+}
   return (
     <ScrollView style={styles.container}>
       {/* Header with Profile */}
@@ -91,10 +116,7 @@ export default function StaffDashboardScreen() {
           <Text style={styles.statNumber}>{stats.active}</Text>
           <Text style={styles.statLabel}>Active SOS</Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: '#FEF3C7' }]}>
-          <Text style={styles.statNumber}>{stats.inProgress}</Text>
-          <Text style={styles.statLabel}>In Progress</Text>
-        </View>
+
         <View style={[styles.statCard, { backgroundColor: '#D1FAE5' }]}>
           <Text style={styles.statNumber}>{stats.completed}</Text>
           <Text style={styles.statLabel}>Completed</Text>
