@@ -22,12 +22,14 @@ export default {
       "assets/sounds/*"  
     ],
     ios: {
+      bundleIdentifier: "com.x2020100.umoyosos",
       supportsTablet: true,
       infoPlist: {
         NSLocationWhenInUseUsageDescription:
           "We use your location to show your position on the map and help responders find you.",
         NSLocationAlwaysAndWhenInUseUsageDescription:
           "We use your location to show your position on the map and help responders find you.",
+        UIBackgroundModes: ["location", "fetch"],
       },
       config: {
         usesNonExemptEncryption: false,
@@ -48,18 +50,7 @@ export default {
         "ACCESS_BACKGROUND_LOCATION",
         "WAKE_LOCK", 
       ],
-            useNextNotificationsApi: true,
-
-    },
-
-
- ios: {
-      supportsTablet: true,
-      infoPlist: {
-        NSLocationWhenInUseUsageDescription: "We use your location to show your position on the map and help responders find you.",
-        NSLocationAlwaysAndWhenInUseUsageDescription: "We use your location to show your position on the map and help responders find you.",
-        UIBackgroundModes: ["location", "fetch"], 
-      },
+      useNextNotificationsApi: true,
     },
 
 
