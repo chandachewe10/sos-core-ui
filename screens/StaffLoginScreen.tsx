@@ -4,8 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { toast } from 'sonner-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
-import PusherService from '../services/PusherService';
-import LocationService from '../services/LocationService';
+import { pusherService } from '../services/PusherService';
 
 export default function StaffLoginScreen() {
   const [email, setEmail] = useState('');
@@ -34,30 +33,17 @@ export default function StaffLoginScreen() {
       await AsyncStorage.setItem('staffToken', data.token);
       await AsyncStorage.setItem('staffUser', JSON.stringify(data.user));
       toast.success('Logged in successfully');
-<<<<<<< HEAD
 
-      // Initialize Pusher immediately after login so siren works
+      // 3. Update staff location
+      await updateStaffLocation(data.token);
+
+      // 4. Initialize Pusher for emergency alerts
       // Use data.user.id (User model ID) - this matches Laravel's staffUserId
-      const { pusherService } = await import('../services/PusherService');
-      const staffUserId = data.user?.id; // This is the User model ID
-      if (staffUserId) {
-        console.log('🔌 Initializing Pusher after login for staff user ID:', staffUserId);
-        await pusherService.initPusher(staffUserId.toString());
+      if (data.user && data.user.id) {
+        await pusherService.initPusher(data.user.id.toString());
+        console.log('✅ Pusher emergency listener activated for staff user ID:', data.user.id);
       } else {
         console.warn('⚠️ User ID not found in login response');
-      }
-      // Update users Current Location of user
-=======
->>>>>>> 59de0a31ac9e00b93aea5664d3b26adce6fc0873
-
-      // 3. Start real-time location updates (INDEPENDENT SERVICE)
-      await LocationService.startLocationUpdates();
-      console.log('📍 Real-time location updates started');
-
-      // 4. Initialize Pusher for emergency alerts (SEPARATE SERVICE)
-      if (data.user && data.user.id) {
-        await PusherService.initPusher(data.user.id);
-        console.log('✅ Pusher emergency listener activated');
       }
 
       // 5. Navigate
@@ -105,12 +91,7 @@ export default function StaffLoginScreen() {
 
   return (
     <View style={styles.container}>
-<<<<<<< HEAD
       <Text style={styles.title}>Practitioner's Login</Text>
-
-=======
-      <Text style={styles.title}>Staff Login</Text>
->>>>>>> 59de0a31ac9e00b93aea5664d3b26adce6fc0873
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -138,13 +119,9 @@ export default function StaffLoginScreen() {
         onPress={handleLogin}
         disabled={loading}
       >
-<<<<<<< HEAD
-        <Text style={styles.buttonText}>Practitioner's Login</Text>
-=======
         <Text style={styles.buttonText}>
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? 'Logging in...' : "Practitioner's Login"}
         </Text>
->>>>>>> 59de0a31ac9e00b93aea5664d3b26adce6fc0873
       </Pressable>
     </View>
   );

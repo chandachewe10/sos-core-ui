@@ -4,11 +4,7 @@ import * as DB from '../lib/db';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-<<<<<<< HEAD
 import { pusherService } from '../services/PusherService';
-=======
-import LocationService from '../services/LocationService';
->>>>>>> 59de0a31ac9e00b93aea5664d3b26adce6fc0873
 
 export default function StaffDashboardScreen() {
   const auth = useAuth();
@@ -24,7 +20,6 @@ export default function StaffDashboardScreen() {
  
 
   useEffect(() => {
-    console.log('📍 Location service status:', LocationService.getStatus());
     loadData();
     initializePusher();
 
