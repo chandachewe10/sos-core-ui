@@ -13,6 +13,7 @@
   "dependencies": {
     "@auth0/auth0-react": "^2.4.0",
     "@clerk/clerk-react": "5.0.0",
+    "@expo/metro-runtime": "~5.0.5",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-native-community/netinfo": "11.4.1",
     "@react-native-community/slider": "4.5.6",
@@ -32,10 +33,12 @@
     "expo-location": "18.1.6",
     "expo-updates": "~0.28.17",
     "firebase": "^8.10.0",
+    "leaflet": "^1.9.4",
     "lucide-react-native": "0.542.0",
     "pusher-js": "^8.4.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
+    "react-leaflet": "^5.0.0",
     "react-native": "0.79.5",
     "react-native-dotenv": "^3.4.11",
     "react-native-gesture-handler": "~2.24.0",
@@ -60,8 +63,10 @@
     "@types/react-native": "^0.72.8",
     "babel-plugin-inline-dotenv": "^1.7.0",
     "babel-preset-expo": "~13.0.0",
+    "css-loader": "^7.1.2",
     "eslint": "^8.23.0",
     "prettier": "^2.7.1",
+    "style-loader": "^4.0.0",
     "typescript": "~5.8.3"
   }
 }
