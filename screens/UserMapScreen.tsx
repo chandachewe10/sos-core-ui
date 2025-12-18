@@ -310,8 +310,8 @@ export default function UserMapScreen() {
         ))}
       </MapView>
 
-      {/* Track ME Button - Top Left Circular Button */}
-      {trackingPreferences && !trackingPreferences.trackingEnabled && (
+      {/* TRACK ME Button - always available when tracking is not enabled */}
+      {(!trackingPreferences || !trackingPreferences.trackingEnabled) && (
         <Pressable
           style={styles.trackMeButton}
           onPress={handleEnableTracking}
