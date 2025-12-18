@@ -54,7 +54,9 @@ export default function WelcomeScreen() {
               {UserIcon ? <UserIcon color="#0B1220" width={28} height={28} /> : <Text>U</Text>}
             </View>
           </View>
-          <Text style={styles.cardTitle}>Sign in as a User</Text>
+          <View style={styles.primaryButton}>
+            <Text style={styles.primaryButtonText}>Sign in as a User</Text>
+          </View>
 
           <Text style={styles.cardSub}>
             Quick phone OTP. Call for help from your location.
@@ -144,6 +146,19 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 18, fontWeight: '700', color: '#0B1220', textAlign: 'center', },
   cardSub: { marginTop: 6, color: '#334155', marginBottom: 14, textAlign: 'center' },
+  primaryButton: {
+    backgroundColor: '#2563EB',
+    borderRadius: 999,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    alignSelf: 'center',
+    marginTop: 8,
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 16,
+  },
   buttonGroup: { gap: 10 },
   actionButton: {
     borderRadius: 8,
