@@ -8,6 +8,9 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SafetyCheckModal from '../components/SafetyCheckModal';
 
+// This file is only for native platforms
+// For web, use UserMapScreen.web.tsx instead
+
 interface TrackingPreferences {
   trackingEnabled: boolean;
   checkInIntervalMinutes: number | null;
@@ -310,8 +313,8 @@ export default function UserMapScreen() {
         ))}
       </MapView>
 
-      {/* TRACK ME Button - always available when tracking is not enabled */}
-      {(!trackingPreferences || !trackingPreferences.trackingEnabled) && (
+      {/* Track ME Button - Top Left Circular Button */}
+      {trackingPreferences && !trackingPreferences.trackingEnabled && (
         <Pressable
           style={styles.trackMeButton}
           onPress={handleEnableTracking}
